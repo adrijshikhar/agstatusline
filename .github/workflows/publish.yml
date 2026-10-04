@@ -44,24 +44,20 @@ jobs:
         with:
           bun-version: latest
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-
       - name: Resolve Release Tag
         id: tag
         run: |
           if [ -n "${{ github.event.inputs.tag }}" ]; then
             echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
           else
-            echo "tag=v$(node -p 'require("./package.json").version')" >> "$GITHUB_OUTPUT"
+            echo "tag=v$(bun -e 'console.log(require("./package.json").version)')" >> "$GITHUB_OUTPUT"
           fi
 
       - run: bun install --frozen-lockfile
       - run: bun run lint
       - run: bun test
       - run: bun run build
-      - run: npm pack --ignore-scripts --pack-destination "$RUNNER_TEMP"
+      - run: bun pm pack --destination "$RUNNER_TEMP"
       - run: cd "$RUNNER_TEMP" && sha256sum agstatusline-*.tgz > SHA256SUMS
 
       - name: Save Release Tarball
