@@ -9,7 +9,7 @@
   "module": "./dist/agstatusline.js",
   "type": "module",
   "bin": {
-    "agstatusline": "./dist/agstatusline.js"
+    "agstatusline": "dist/agstatusline.js"
   },
   "exports": {
     ".": {
