@@ -21,6 +21,9 @@
   "files": [
     "dist/"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "start": "bun run src/agstatusline.ts",
     "build": "rm -rf dist/* ; bun build src/agstatusline.ts --target=node --format=esm --outdir=dist --target-version=14 && bun run postbuild",
