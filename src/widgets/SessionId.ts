@@ -1,0 +1,33 @@
+import type { RenderContext } from '../types/RenderContext';
+import type { Settings } from '../types/Settings';
+import type {
+    Widget,
+    WidgetEditorDisplay,
+    WidgetItem
+} from '../types/Widget';
+
+export class SessionIdWidget implements Widget {
+    getDefaultColor(): string { return 'cyan'; }
+    getDescription(): string { return 'Shows the current Antigravity session ID reported in status JSON'; }
+    getDisplayName(): string { return 'Session ID'; }
+    getCategory(): string { return 'Session'; }
+    getEditorDisplay(item: WidgetItem): WidgetEditorDisplay {
+        return { displayText: this.getDisplayName() };
+    }
+
+    render(item: WidgetItem, context: RenderContext, settings: Settings): string | null {
+        if (context.isPreview) {
+            return item.rawValue ? 'preview-session-id' : 'Session ID: preview-session-id';
+        }
+
+        const sessionId = context.data?.session_id ?? context.data?.conversation_id;
+        if (!sessionId) {
+            return null;
+        }
+
+        return item.rawValue ? sessionId : `Session ID: ${sessionId}`;
+    }
+
+    supportsRawValue(): boolean { return true; }
+    supportsColors(item: WidgetItem): boolean { return true; }
+}

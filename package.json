@@ -1,0 +1,92 @@
+{
+  "name": "agstatusline",
+  "version": "0.1.0",
+  "bugs": {
+    "url": "https://github.com/adrijshikhar/agstatusline/issues"
+  },
+  "description": "A customizable status line formatter for Google Antigravity CLI",
+  "main": "./dist/agstatusline.js",
+  "module": "./dist/agstatusline.js",
+  "type": "module",
+  "bin": {
+    "agstatusline": "./dist/agstatusline.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/agstatusline.js",
+      "default": "./dist/agstatusline.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist/"
+  ],
+  "scripts": {
+    "start": "bun run src/agstatusline.ts",
+    "build": "rm -rf dist/* ; bun build src/agstatusline.ts --target=node --format=esm --outdir=dist --target-version=14 && bun run postbuild",
+    "postbuild": "bun run scripts/replace-version.ts",
+    "test": "vitest run",
+    "prepublishOnly": "bun run build",
+    "lint": "bun tsc --noEmit && eslint . --config eslint.config.js --max-warnings=0",
+    "lint:fix": "bun tsc --noEmit && eslint . --config eslint.config.js --max-warnings=0 --fix",
+    "docs": "typedoc",
+    "docs:clean": "rm -rf typedoc"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@stylistic/eslint-plugin": "^5.2.3",
+    "@types/bun": "latest",
+    "@types/pluralize": "^0.0.33",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.2.3",
+    "@typescript/native": "npm:typescript@^7.0.2",
+    "chalk": "^6.0.0",
+    "eslint": "^10.0.0",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import-newlines": "^2.0.0",
+    "eslint-plugin-import-x": "^4.16.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "globals": "^17.3.0",
+    "https-proxy-agent": "^8.0.0",
+    "ink": "6.2.0",
+    "ink-gradient": "^4.0.0",
+    "ink-select-input": "^6.2.0",
+    "pluralize": "^8.0.0",
+    "react": "19.2.8",
+    "react-devtools-core": "^7.0.1",
+    "react-dom": "19.2.8",
+    "strip-ansi": "^7.1.0",
+    "tinyglobby": "^0.2.14",
+    "typedoc": "^0.28.12",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "typescript-eslint": "^8.39.1",
+    "vitest": "^4.0.18",
+    "zod": "^4.0.17"
+  },
+  "keywords": [
+    "antigravity",
+    "gemini",
+    "cli",
+    "status-line",
+    "statusline",
+    "terminal",
+    "tui",
+    "powerline"
+  ],
+  "author": "Adrij Shikhar",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adrijshikhar/agstatusline.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "trustedDependencies": [
+    "unrs-resolver"
+  ],
+  "patchedDependencies": {
+    "ink@6.2.0": "patches/ink@6.2.0.patch"
+  }
+}

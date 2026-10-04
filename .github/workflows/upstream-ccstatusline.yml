@@ -1,0 +1,48 @@
+name: CCStatusline Upstream Parity Watcher
+
+on:
+  schedule:
+    # Check upstream ccstatusline daily at 04:30 UTC
+    - cron: "30 4 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (check without opening issue)"
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: upstream-ccstatusline
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    name: Check ccstatusline Parity
+    runs-on: ubuntu-latest
+    if: github.repository == 'adrijshikhar/agstatusline'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Run CCStatusline Watcher
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          ARGS=()
+          if [ "$INPUT_DRY_RUN" = "true" ]; then
+            ARGS+=(--dry-run)
+          fi
+          bun run scripts/upstream-ccstatusline.ts "${ARGS[@]}"

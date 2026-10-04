@@ -1,0 +1,31 @@
+# agstatusline
+
+> A highly customizable, low-overhead status line formatter for Google Antigravity CLI (`agy`). Formats and renders model info (Gemini Flash/Pro 1M/2M contexts), git branch/diff stats, thinking effort levels, quota buckets, session costs, timers, and custom widgets via an interactive Ink TUI with Powerline support.
+
+## Getting Started
+
+- Quick Start: Run with `bunx -y agstatusline@latest` or `npx -y agstatusline@latest` to launch the interactive TUI configuration editor.
+- Antigravity Integration: Run `agstatusline --install` to automatically wire into `~/.gemini/antigravity-cli/settings.json`.
+
+## Configuration
+
+- Config Location: `~/.config/agstatusline/settings.json` (override with `AGSTATUSLINE_CONFIG_DIR` or `XDG_CONFIG_HOME`).
+- CLI Flags:
+  - `--install`: Installs statusline command in Antigravity settings.
+  - `--uninstall`: Removes statusline command from Antigravity settings.
+  - `--status`: Checks installation status.
+  - `--version`: Prints package version.
+  - `--help`: Shows CLI options.
+
+## Documentation
+
+- Full Usage Guide: `docs/usage.md` (all 88 widgets, custom commands, caching, TUI keybindings, and Powerline).
+- Telemetry Payload Contract: `docs/payload.md` (complete JSON schema from Antigravity CLI, field specs, and golden fixtures).
+- Contributing Guide: `CONTRIBUTING.md`.
+
+## Development
+
+- Runtime: Bun >= 1.0, Node.js >= 18.
+- Validation: `bun test` (2,370+ tests), `bun run lint` (zero warnings policy), `bun run build`.
+- License: MIT.
+
