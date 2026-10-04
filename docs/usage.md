@@ -40,11 +40,11 @@ Configure everything interactively by running `agstatusline` with no arguments (
 | `model` | Model | `cyan` | Displays the active Antigravity model name (e.g. `Gemini 2.5 Pro`, `Gemini 2.5 Flash`) and thinking effort level (e.g. `[effort: high]`). Supports raw value mode. |
 | `thinking-effort` | Thinking Effort | `cyan` | Displays the current thinking / reasoning effort level (`low`, `medium`, `high`, `max`). |
 | `session-name` | Session Name | `white` | Displays the active Antigravity session / conversation title (e.g. `User Auth Refactor`). Supports sub-5ms cached SQLite lookup. |
-| `claude-session-id` | Session ID | `brightBlack` | Shows the active Antigravity session ID (UUID or shortened hash). |
+| `session-id` | Session ID | `brightBlack` | Shows the active Antigravity session ID (UUID or shortened hash). |
 | `version` | Version | `brightBlack` | Displays the Antigravity CLI version or `agstatusline` package version. |
 | `output-style` | Output Style | `brightBlack` | Displays the configured output style (e.g. `standard`, `concise`, `code`). |
 | `claude-status` | Antigravity Status | `green` | Displays service status and connectivity health indicator. |
-| `claude-account-email` | Account Email | `brightBlack` | Displays the authenticated user account email address. |
+| `account-email` | Account Email | `brightBlack` | Displays the authenticated user account email address. |
 | `skills` | Skills | `magenta` | Displays loaded Antigravity skills or count of active skill plugins. |
 
 ### Git & Jujutsu VCS
