@@ -1,24 +1,21 @@
 <div align="center">
 
-<pre>
-                                 _        _             _ _            
-   __ _  __ _ ___| |_ __ _| |_ _   _ ___| (_)_ __   ___ 
-  / _` |/ _` / __| __/ _` | __| | | / __| | | '_ \ / _ \
- | (_| | (_| \__ \ || (_| | |_| |_| \__ \ | | | | |  __/
-  \__,_|\__, |___/\__\__,_|\__|\__,_|___/_|_|_| |_|\___|
-        |___/                                           
-</pre>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/banner-dark.png">
+  <img alt="agstatusline - Customizable statusline & status bar for Google Antigravity CLI" src="docs/banner-light.png" width="720">
+</picture>
 
 # agstatusline
 
-**🎨 A highly customizable statusline formatter and interactive TUI for Google Antigravity CLI (`agy`)**  
-*Display active model, thinking effort, context tokens, quota resets, subagents, git status, and session costs in your terminal prompt*
+**⚡ Your Antigravity session, at a glance.**
 
-[![npm version](https://img.shields.io/npm/v/agstatusline.svg)](https://www.npmjs.com/package/agstatusline)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Node.js Version](https://img.shields.io/node/v/agstatusline.svg)](https://nodejs.org)
-[![Bun Version](https://img.shields.io/badge/Bun-%3E%3D1.0-orange.svg)](https://bun.sh)
+*Model, thinking effort, context window, Git, quota, subagents, and cost. Your terminal, your layout.*
+
 [![CI](https://github.com/adrijshikhar/agstatusline/actions/workflows/ci.yml/badge.svg)](https://github.com/adrijshikhar/agstatusline/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/agstatusline.svg)](https://www.npmjs.com/package/agstatusline)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Node.js 18+](https://img.shields.io/badge/node-%E2%89%A518-green)](https://nodejs.org/)
+[![Bun 1.0+](https://img.shields.io/badge/bun-%E2%89%A51.0-orange)](https://bun.sh)
 [![Upstream Parity](https://github.com/adrijshikhar/agstatusline/actions/workflows/upstream-ccstatusline.yml/badge.svg)](https://github.com/adrijshikhar/agstatusline/actions/workflows/upstream-ccstatusline.yml)
 
 </div>
@@ -74,7 +71,7 @@ It operates seamlessly in two modes:
 
 - **📊 Comprehensive Telemetry**: Model names with thinking effort (`low`, `medium`, `high`, `max`), token counts, context percentage & progress bars, API quota reset countdowns, active subagents, background tasks, sandbox status, Vim mode, and USD session costs.
 - **⚡ Native Antigravity Integration**: Uses Antigravity's built-in `statusLine` command hook in `~/.gemini/antigravity-cli/settings.json` (with full support for `AIM_PROFILE_DIR` and `ANTIGRAVITY_CONFIG_DIR`).
-- **🎯 Battle-Tested CX Default Layout**: Ships out of the box with the clean, production-proven layout: `model` | `context-window` | `git-branch` | `git-changes`.
+- **🎯 Clean Default Layout**: Ships out of the box with a focused, production-proven layout: `model` | `context-window` | `git-branch` | `git-changes`.
 - **🖥️ Visual React/Ink TUI**: Reorder widgets, add rows, customize padding, select glyphs, test color palettes, and manage installation state interactively.
 - **📐 Multi-Line & Flex Layouts**: Build single-row or multi-row statuslines. Use `flex-separator` to split left and right statusline segments that dynamically adjust to your terminal width.
 - **⚡ Powerline & Nerd Fonts**: Full support for Powerline arrow glyphs, custom Unicode start/end caps, and automatic multi-line theme continuity.
@@ -148,7 +145,7 @@ Add or update the `statusLine` block in your Antigravity settings file (`~/.gemi
 
 ## 🎨 Default Layout
 
-`agstatusline` ships configured with the popular CX statusline layout:
+`agstatusline` ships configured with a clean, focused default layout designed for Google Antigravity CLI:
 
 ```text
  gemini-2.5-pro (high) │ 48.5k/1.0M (5%) │ main* │ +142 -28 
@@ -203,9 +200,9 @@ agstatusline --tui
 
 ## 🧩 Widget Catalog
 
-`agstatusline` provides **88 modular widgets** plus 2 layout separators across Core, Git, Jujutsu (`jj`), Context, Tokens, Speeds, Quota, Session, Environment, and Custom categories.
+`agstatusline` provides **94 modular widgets** plus 2 layout separators across Core, Git, Jujutsu (`jj`), Context, Tokens, Speeds, Quota, Session, Environment, and Custom categories.
 
-👉 **For the complete 88-widget breakdown, options, and keybindings, see the [Usage Guide (`docs/usage.md`)](docs/usage.md).**
+👉 **For the complete 94-widget breakdown, options, and keybindings, see the [Usage Guide (`docs/usage.md`)](docs/usage.md).**
 
 ### Featured Core & Telemetry Widgets
 
