@@ -145,20 +145,34 @@ Add or update the `statusLine` block in your Antigravity settings file (`~/.gemi
 
 ## 🎨 Default Layout
 
-`agstatusline` ships configured with a clean, focused default layout designed for Google Antigravity CLI:
+`agstatusline` ships configured with an information-dense, multi-row layout designed for professional Antigravity CLI workflows:
 
 ```text
- gemini-2.5-pro (high) │ 48.5k/1.0M (5%) │ main* │ +142 -28 
+ Line 1:  Gemini 2.5 Pro │ high │ [■■■■······] │ ~/P/m/agstatusline │ main │ +142 -28 
+ Line 2:  $0.14 │ 2m 45s │ 82% (4h 12m) │ 14:28:05 │ 120 t/s │ 45 t/s │ 12.5k │ 48.5k/1.0M (5%)
+ Line 3:  14.2 GB free │ adrijshikhar26@gmail.com │ User Auth Refactor │ ag-88f12a
 ```
 
-- **Line 1**:
-  - `model` (cyan): Active model identifier and reasoning effort level
-  - `separator` (white): Visual divider (`│`)
-  - `context-window` (brightBlack): Formatted token usage and context capacity
-  - `separator` (white): Visual divider (`│`)
-  - `git-branch` (magenta): Current git branch name
-  - `separator` (white): Visual divider (`│`)
-  - `git-changes` (yellow): Uncommitted file insertions, deletions, or dirty state
+- **Line 1 (Model, Workspace & VCS)**:
+  - `model` (`#61AFEF`): Active model display name (e.g. `Gemini 2.5 Pro`)
+  - `thinking-effort` (`#E06C75`): Current reasoning effort level (`low`, `medium`, `high`, `max`)
+  - `context-bar` (`#98C379`): Visual progress bar of context window consumption
+  - `current-working-dir` (`#ABB2BF`): Fish-style compact workspace path
+  - `git-branch` (`#C678DD`): Current Git branch name
+  - `git-changes` (`#E5C07B`): Uncommitted insertions, deletions, or dirty state
+- **Line 2 (Metrics, Velocity & Usage)**:
+  - `session-cost` (`#98C379`): Total USD session cost tracking
+  - `block-timer` (`#D19A66`): Elapsed execution time in active turn
+  - `weekly-usage` (`#61AFEF`): Quota usage percentage and reset countdown
+  - `session-clock` (`#56B6C2`): Session timestamp / duration clock
+  - `input-speed` (`#56B6C2`) & `output-speed` (`#61AFEF`): Token generation velocities in tokens/sec
+  - `tokens-cached` (`#5C6370`): Total tokens read from prompt cache
+  - `session-usage` (`#C678DD`): Total token usage against context limit with progress formatting
+- **Line 3 (System, Identity & Session)**:
+  - `free-memory` (`#E06C75`): System available memory
+  - `account-email` (`#E879F9`): Authenticated user account email
+  - `session-name`: Active session title with sub-5ms cached SQLite lookup
+  - `session-id`: Active Antigravity session identifier
 
 ---
 
@@ -260,29 +274,60 @@ Settings are stored in JSON format at `~/.config/agstatusline/settings.json`.
   "version": 4,
   "lines": [
     [
-      { "id": "1", "type": "model", "color": "cyan" },
-      { "id": "2", "type": "separator" },
-      { "id": "3", "type": "context-window", "color": "brightBlack" },
-      { "id": "4", "type": "separator" },
-      { "id": "5", "type": "git-branch", "color": "magenta" },
-      { "id": "6", "type": "separator" },
-      { "id": "7", "type": "git-changes", "color": "yellow" }
+      { "id": "w-model", "type": "model", "color": "hex:61AFEF" },
+      { "id": "w-sep1", "type": "separator" },
+      { "id": "w-thinking", "type": "thinking-effort", "color": "hex:E06C75" },
+      { "id": "w-sep2", "type": "separator" },
+      { "id": "w-context-bar", "type": "context-bar", "color": "hex:98C379" },
+      { "id": "w-sep3b", "type": "separator" },
+      { "id": "w-cwd-l1", "type": "current-working-dir", "color": "hex:ABB2BF", "metadata": { "fishStyle": "true" } },
+      { "id": "w-sep4b", "type": "separator" },
+      { "id": "w-git-branch", "type": "git-branch", "color": "hex:C678DD" },
+      { "id": "w-sep5", "type": "separator" },
+      { "id": "w-git-changes", "type": "git-changes", "color": "hex:E5C07B" }
+    ],
+    [
+      { "id": "w-session-cost", "type": "session-cost", "color": "hex:98C379" },
+      { "id": "w-sep6", "type": "separator" },
+      { "id": "w-block-timer", "type": "block-timer", "color": "hex:D19A66" },
+      { "id": "w-sep7", "type": "separator" },
+      { "id": "w-weekly-usage", "type": "weekly-usage", "color": "hex:61AFEF" },
+      { "id": "w-sep8", "type": "separator" },
+      { "id": "w-session-clock", "type": "session-clock", "color": "hex:56B6C2" },
+      { "id": "w-sep9", "type": "separator" },
+      { "id": "w-input-speed", "type": "input-speed", "color": "hex:56B6C2" },
+      { "id": "w-sep9b", "type": "separator" },
+      { "id": "w-output-speed", "type": "output-speed", "color": "hex:61AFEF" },
+      { "id": "w-sep9c", "type": "separator" },
+      { "id": "w-tokens-cached", "type": "tokens-cached", "color": "hex:5C6370" },
+      { "id": "w-sep10", "type": "separator" },
+      { "id": "w-session-usage-pct", "type": "session-usage", "color": "hex:C678DD", "metadata": { "display": "progress" } }
+    ],
+    [
+      { "id": "w-memory", "type": "free-memory", "color": "hex:E06C75", "rawValue": false },
+      { "id": "w-sep-memory", "type": "separator" },
+      { "id": "w-account-email", "type": "account-email", "color": "hex:E879F9", "rawValue": false },
+      { "id": "w-sep-session-name", "type": "separator" },
+      { "id": "w-session-name", "type": "session-name" },
+      { "id": "w-sep-session-id", "type": "separator" },
+      { "id": "w-session-id", "type": "session-id" }
     ]
   ],
-  "flexMode": "full",
+  "flexMode": "full-minus-40",
   "compactThreshold": 60,
   "colorLevel": 2,
   "defaultPaddingSide": "both",
   "inheritSeparatorColors": false,
   "globalBold": false,
   "terminalWidthCacheTtlSeconds": 5,
+  "gitCacheTtlSeconds": 5,
   "powerline": {
     "enabled": false,
-    "separators": ["\uE0B0"],
+    "separators": ["|"],
     "separatorInvertBackground": [false],
     "startCaps": [],
     "endCaps": [],
-    "autoAlign": false,
+    "autoAlign": true,
     "continueThemeAcrossLines": false
   }
 }
