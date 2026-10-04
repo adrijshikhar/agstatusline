@@ -101,16 +101,15 @@ export const SettingsSchema = z.object({
                 },
                 { id: 'w-sep-memory', type: 'separator' },
                 {
-                    id: 'w-skills',
-                    type: 'skills',
+                    id: 'w-account-email',
+                    type: 'account-email',
                     color: 'hex:E879F9',
-                    rawValue: false,
-                    metadata: { mode: 'current' }
+                    rawValue: false
                 },
                 { id: 'w-sep-session-name', type: 'separator' },
                 { id: 'w-session-name', type: 'session-name' },
                 { id: 'w-sep-session-id', type: 'separator' },
-                { id: 'w-session-id', type: 'claude-session-id' }
+                { id: 'w-session-id', type: 'session-id' }
             ]
         ]),
     flexMode: FlexModeSchema.default('full-minus-40'),
