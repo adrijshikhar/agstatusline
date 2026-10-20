@@ -149,6 +149,26 @@ export function checkExistingParityIssue(gh: GhRunner, releaseTag: string): { ex
     }
 }
 
+export function ensureLabel(
+    gh: GhRunner,
+    name: string,
+    color: string,
+    description: string
+): void {
+    const listRes = gh(['label', 'list', '--json', 'name']);
+    if (listRes.status === 0) {
+        try {
+            const labels = JSON.parse(listRes.stdout) as { name: string }[];
+            if (labels.some(l => l.name.toLowerCase() === name.toLowerCase())) {
+                return;
+            }
+        } catch {
+            // fallback to create
+        }
+    }
+    gh(['label', 'create', name, '--color', color, '--description', description, '--force']);
+}
+
 export function formatParityIssueBody(config: UpstreamConfig, release: CcRelease, compare: CcCompare): string {
     const firstLines = compare.commits.map((c) => {
         const header = c.commit.message.split('\n')[0] ?? 'update';
@@ -236,7 +256,10 @@ export async function runCcstatuslineWatch(options: {
     const title = `Upstream Parity: ccstatusline ${release.tag_name} released (${compare.total_commits} commits ahead)`;
     const body = formatParityIssueBody(config, release, compare);
 
-    const createRes = gh([
+    ensureLabel(gh, 'upstream-parity', '0e8a16', 'Track parity and updates with ccstatusline upstream');
+    ensureLabel(gh, 'enhancement', 'a2eeef', 'New feature or request');
+
+    const createStdout = ghText(gh, [
         'issue',
         'create',
         '--title',
@@ -251,7 +274,7 @@ export async function runCcstatuslineWatch(options: {
         action: 'issue_created',
         releaseTag: release.tag_name,
         newCommitsCount: compare.total_commits,
-        detail: createRes.stdout.trim()
+        detail: createStdout.trim()
     };
 }
 
