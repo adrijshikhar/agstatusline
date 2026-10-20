@@ -103,13 +103,13 @@ describe('Pinned version mismatch guard', () => {
         expect(getPinnedVersionMismatch({
             method: 'auto-update',
             packageManager: 'bun'
-        }, '2.3.0', 'ccstatusline')).toBeNull();
+        }, '2.3.0', 'agstatusline')).toBeNull();
 
         expect(getPinnedVersionMismatch({
             method: 'pinned',
             packageManager: 'npm',
             installedVersion: '2.3.0'
-        }, '2.3.0', 'ccstatusline')).toBeNull();
+        }, '2.3.0', 'agstatusline')).toBeNull();
     });
 
     it('blocks when the running TUI is newer than the pinned global install', () => {
@@ -117,11 +117,11 @@ describe('Pinned version mismatch guard', () => {
             method: 'pinned',
             packageManager: 'bun',
             installedVersion: '2.2.13'
-        }, '2.3.0', '/home/alice/.bun/bin/ccstatusline')).toEqual({
+        }, '2.3.0', '/home/alice/.bun/bin/agstatusline')).toEqual({
             packageManager: 'bun',
             installedVersion: '2.2.13',
             runningVersion: '2.3.0',
-            relaunchCommand: '/home/alice/.bun/bin/ccstatusline',
+            relaunchCommand: '/home/alice/.bun/bin/agstatusline',
             canUpdateToRunningVersion: true
         });
     });
@@ -131,11 +131,11 @@ describe('Pinned version mismatch guard', () => {
             method: 'pinned',
             packageManager: 'npm',
             installedVersion: '2.3.0'
-        }, '2.2.13', '/usr/local/bin/ccstatusline')).toEqual({
+        }, '2.2.13', '/usr/local/bin/agstatusline')).toEqual({
             packageManager: 'npm',
             installedVersion: '2.3.0',
             runningVersion: '2.2.13',
-            relaunchCommand: '/usr/local/bin/ccstatusline',
+            relaunchCommand: '/usr/local/bin/agstatusline',
             canUpdateToRunningVersion: false
         });
     });
@@ -146,10 +146,10 @@ describe('Pinned version mismatch guard', () => {
             installedVersion: '2.2.13'
         }, {
             packageManager: 'bun',
-            resolvedPath: '/Users/alice/.bun/bin/ccstatusline',
+            resolvedPath: '/Users/alice/.bun/bin/agstatusline',
             resolvedPaths: [
-                '/Users/alice/.bun/bin/ccstatusline',
-                '/Users/alice/.nvm/versions/node/v24.9.0/bin/ccstatusline'
+                '/Users/alice/.bun/bin/agstatusline',
+                '/Users/alice/.nvm/versions/node/v24.9.0/bin/agstatusline'
             ],
             binDir: '/Users/alice/.bun/bin',
             version: null,
@@ -167,8 +167,8 @@ describe('Pinned version mismatch guard', () => {
             installedVersion: '2.2.13'
         }, {
             packageManager: 'bun',
-            resolvedPath: '/Users/alice/.bun/bin/ccstatusline',
-            resolvedPaths: ['/Users/alice/.bun/bin/ccstatusline'],
+            resolvedPath: '/Users/alice/.bun/bin/agstatusline',
+            resolvedPaths: ['/Users/alice/.bun/bin/agstatusline'],
             binDir: '/Users/alice/.bun/bin',
             version: '2.2.13',
             warning: null

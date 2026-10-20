@@ -110,7 +110,7 @@ function getBinaryPathCandidates(binDir: string, platform: NodeJS.Platform): str
         ? WINDOWS_SHIM_EXTENSIONS
         : [''];
 
-    return extensions.map(extension => appendPathSegment(binDir, `ccstatusline${extension}`));
+    return extensions.map(extension => appendPathSegment(binDir, `agstatusline${extension}`));
 }
 
 function hasBinaryOnDisk(binDir: string, platform: NodeJS.Platform): boolean {
@@ -188,7 +188,7 @@ function getNpmGlobalPackageVersion(platform: NodeJS.Platform): string | null {
         }).trim();
 
         return rootDir
-            ? readPackageVersion(appendPathSegment(appendPathSegment(rootDir, 'ccstatusline'), 'package.json'))
+            ? readPackageVersion(appendPathSegment(appendPathSegment(rootDir, 'agstatusline'), 'package.json'))
             : null;
     } catch {
         return null;
@@ -219,7 +219,7 @@ function getBunGlobalPackageVersion(binDir: string | null): string | null {
                     ),
                     'node_modules'
                 ),
-                'ccstatusline'
+                'agstatusline'
             ),
             'package.json'
         )
@@ -299,16 +299,16 @@ function getActiveResolutionWarning(
     active: Pick<ActiveGlobalCommandResolution, 'packageManager' | 'resolvedPath'>
 ): string | null {
     if (!active.resolvedPath) {
-        return '⚠ ccstatusline is not currently resolvable on PATH. Claude Code runs ccstatusline, so restart your shell or update PATH if it cannot launch.';
+        return '⚠ agstatusline is not currently resolvable on PATH. Antigravity CLI runs agstatusline, so restart your shell or update PATH if it cannot launch.';
     }
 
     const resolvedDirs = getUniqueResolvedDirs(resolvedPaths);
     if (resolvedDirs.length > 1) {
-        return `⚠ Multiple ccstatusline binaries are on PATH. Claude Code will run the first match: ${active.resolvedPath}.\nOther matches: ${formatPathList(resolvedPaths.slice(1))}`;
+        return `⚠ Multiple agstatusline binaries are on PATH. Antigravity CLI will run the first match: ${active.resolvedPath}.\nOther matches: ${formatPathList(resolvedPaths.slice(1))}`;
     }
 
     if (active.packageManager === 'unknown') {
-        return `⚠ ccstatusline resolves to ${active.resolvedPath}, but it is outside the detected npm and bun global bin directories.`;
+        return `⚠ agstatusline resolves to ${active.resolvedPath}, but it is outside the detected npm and bun global bin directories.`;
     }
 
     return null;
@@ -318,7 +318,7 @@ export function inspectActiveGlobalCommand({
     commandAvailability,
     platform = process.platform
 }: InspectActiveGlobalCommandOptions): ActiveGlobalCommandResolution {
-    const resolvedPaths = getPersistentCommandResolutionPaths(getCommandResolutionPaths('ccstatusline', { platform }));
+    const resolvedPaths = getPersistentCommandResolutionPaths(getCommandResolutionPaths('agstatusline', { platform }));
     const resolvedPath = resolvedPaths[0] ?? null;
     const managerBins: Record<GlobalPackageManager, string | null> = {
         npm: getManagerBinDir('npm', commandAvailability.npm, platform),
@@ -344,7 +344,7 @@ export function inspectGlobalPackageInstallations({
     commandAvailability,
     platform = process.platform
 }: InspectGlobalPackageInstallationsOptions): GlobalPackageInstallation[] {
-    const resolvedPaths = getPersistentCommandResolutionPaths(getCommandResolutionPaths('ccstatusline', { platform }));
+    const resolvedPaths = getPersistentCommandResolutionPaths(getCommandResolutionPaths('agstatusline', { platform }));
     return [
         inspectPackageManager('npm', commandAvailability.npm, resolvedPaths, platform),
         inspectPackageManager('bun', commandAvailability.bun, resolvedPaths, platform)
@@ -357,8 +357,8 @@ export function runGlobalPackageUninstall(
 ): Promise<void> {
     const executable = getPackageManagerExecutable(packageManager, platform);
     const args = packageManager === 'npm'
-        ? ['uninstall', '-g', 'ccstatusline']
-        : ['remove', '-g', 'ccstatusline'];
+        ? ['uninstall', '-g', 'agstatusline']
+        : ['remove', '-g', 'agstatusline'];
 
     return new Promise((resolve, reject) => {
         execFile(

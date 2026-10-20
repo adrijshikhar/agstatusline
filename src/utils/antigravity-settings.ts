@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import {
     mkdir,
@@ -12,6 +13,125 @@ import path, {
     dirname,
     resolve
 } from 'node:path';
+
+import type { InstallationMetadata } from '../types/Settings';
+
+import {
+    getConfigPath,
+    isCustomConfigPath
+} from './config';
+
+export const AGSTATUSLINE_COMMANDS = {
+    AUTO_NPX: 'npx -y agstatusline@latest',
+    AUTO_BUNX: 'bunx -y agstatusline@latest',
+    GLOBAL: 'agstatusline'
+};
+
+export const PINNED_INSTALL_COMMANDS = {
+    NPM: (version: string) => `npm install -g agstatusline@${version}`,
+    BUN: (version: string) => `bun add -g agstatusline@${version}`
+};
+
+export type StatusLineCommandMode = 'auto-npx' | 'auto-bunx' | 'global';
+
+export interface PackageCommandAvailability {
+    npm: boolean;
+    npx: boolean;
+    bun: boolean;
+    bunx: boolean;
+}
+
+export function getPackageCommandAvailability(): PackageCommandAvailability {
+    const hasCommand = (cmd: string): boolean => {
+        try {
+            const checkCmd = process.platform === 'win32' ? `where ${cmd}` : `command -v ${cmd}`;
+            execSync(checkCmd, { stdio: 'ignore' });
+            return true;
+        } catch {
+            return false;
+        }
+    };
+
+    return {
+        npm: hasCommand('npm'),
+        npx: hasCommand('npx'),
+        bun: hasCommand('bun'),
+        bunx: hasCommand('bunx')
+    };
+}
+
+function getBaseCommandForMode(commandMode: StatusLineCommandMode): string {
+    switch (commandMode) {
+        case 'auto-npx':
+            return AGSTATUSLINE_COMMANDS.AUTO_NPX;
+        case 'auto-bunx':
+            return AGSTATUSLINE_COMMANDS.AUTO_BUNX;
+        case 'global':
+            return AGSTATUSLINE_COMMANDS.GLOBAL;
+    }
+}
+
+export function buildStatusLineCommand(commandMode: StatusLineCommandMode): string {
+    const base = getBaseCommandForMode(commandMode);
+    if (isCustomConfigPath()) {
+        return `${base} --config "${getConfigPath()}"`;
+    }
+    return base;
+}
+
+function matchesCommandBase(command: string, baseCommand: string): boolean {
+    return command === baseCommand || command.startsWith(`${baseCommand} --config `);
+}
+
+export function isKnownCommand(command: string): boolean {
+    const prefixes = [AGSTATUSLINE_COMMANDS.AUTO_NPX, AGSTATUSLINE_COMMANDS.AUTO_BUNX, AGSTATUSLINE_COMMANDS.GLOBAL];
+    return prefixes.some(prefix => matchesCommandBase(command, prefix))
+        || /(?:^|[\s"'\\/])agstatusline(?:\.ts)?(?=$|[\s"'])/.test(command);
+}
+
+export function classifyInstallation(
+    command: string | null | undefined,
+    metadata?: InstallationMetadata
+): InstallationMetadata {
+    const statusLineCommand = command ?? '';
+
+    if (matchesCommandBase(statusLineCommand, AGSTATUSLINE_COMMANDS.AUTO_NPX)) {
+        return {
+            method: 'auto-update',
+            packageManager: 'npm'
+        };
+    }
+
+    if (matchesCommandBase(statusLineCommand, AGSTATUSLINE_COMMANDS.AUTO_BUNX)) {
+        return {
+            method: 'auto-update',
+            packageManager: 'bun'
+        };
+    }
+
+    if (matchesCommandBase(statusLineCommand, AGSTATUSLINE_COMMANDS.GLOBAL)) {
+        if (metadata?.method === 'pinned') {
+            return metadata;
+        }
+
+        return {
+            method: 'self-managed',
+            packageManager: 'unknown'
+        };
+    }
+
+    if (/(?:^|[\s"'\\/])agstatusline(?:\.ts)?(?=$|[\s"'])/.test(statusLineCommand)) {
+        return {
+            method: 'self-managed',
+            packageManager: 'unknown'
+        };
+    }
+
+    return metadata ?? {
+        method: 'self-managed',
+        packageManager: 'unknown'
+    };
+}
 
 export interface InstallStatusLineOptions {
     command?: string;

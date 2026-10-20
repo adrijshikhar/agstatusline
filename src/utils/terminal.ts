@@ -199,7 +199,7 @@ export function getTerminalWidth(options?: TerminalWidthOptions): number | null 
 
     // An explicit width takes precedence over a cached "no TTY" result and
     // bypasses probing. Memoize it for subsequent calls in this render.
-    const overrideRaw = process.env.CCSTATUSLINE_WIDTH;
+    const overrideRaw = process.env.AGSTATUSLINE_WIDTH ?? process.env.CCSTATUSLINE_WIDTH;
     if (overrideRaw) {
         const override = parsePositiveInteger(overrideRaw);
         if (override !== null) {

@@ -6,26 +6,22 @@ import {
 import React, { useState } from 'react';
 
 import type { InstallationMetadata } from '../../types/Settings';
-import { getAntigravitySettingsPath } from '../../utils/antigravity-settings';
 import {
+    AGSTATUSLINE_COMMANDS,
+    PINNED_INSTALL_COMMANDS,
+    getAntigravitySettingsPath,
     type PackageCommandAvailability,
     type StatusLineCommandMode
-} from '../../utils/claude-settings';
+} from '../../utils/antigravity-settings';
 
 import {
     List,
     type ListEntry
 } from './List';
 
-export const AGSTATUSLINE_COMMANDS = {
-    AUTO_NPX: 'npx -y agstatusline@latest',
-    AUTO_BUNX: 'bunx -y agstatusline@latest',
-    GLOBAL: 'agstatusline'
-};
-
-export const PINNED_INSTALL_COMMANDS = {
-    NPM: (version: string) => `npm install -g agstatusline@${version}`,
-    BUN: (version: string) => `bun add -g agstatusline@${version}`
+export {
+    AGSTATUSLINE_COMMANDS,
+    PINNED_INSTALL_COMMANDS
 };
 
 export type InstallUpdateStyle = 'auto-update' | 'pinned';

@@ -20,15 +20,15 @@ import type {
 } from '../types/Settings';
 import type { WidgetItem } from '../types/Widget';
 import {
+    buildStatusLineCommand,
+    classifyInstallation,
     getAntigravitySettingsPath,
+    getPackageCommandAvailability,
     installStatusLine,
     isStatusLineInstalled,
     uninstallStatusLine
 } from '../utils/antigravity-settings';
 import {
-    buildStatusLineCommand,
-    classifyInstallation,
-    getPackageCommandAvailability,
     isClaudeCodeVersionAtLeast,
     setRefreshInterval
 } from '../utils/claude-settings';
@@ -614,12 +614,12 @@ export const App: React.FC = () => {
             const isAlreadyInstalled = status.installed;
             const finalCommand = selection.commandMode === 'global'
                 ? (isCustomConfigPath() ? `agstatusline --config "${getConfigPath()}"` : 'agstatusline')
-                : buildStatusLineCommand(selection.commandMode).replace(/\bccstatusline\b/g, 'agstatusline');
+                : buildStatusLineCommand(selection.commandMode);
             const hookCommand = `${finalCommand} --hook`;
             const sideEffects = [
                 `Antigravity settings path: ${getAntigravitySettingsPath()}`,
                 ...(selection.globalInstallCommand
-                    ? [`Global install command before settings write: ${selection.globalInstallCommand.replace(/\bccstatusline\b/g, 'agstatusline')}`]
+                    ? [`Global install command before settings write: ${selection.globalInstallCommand}`]
                     : []),
                 `Final statusLine.command: ${finalCommand}`,
                 `Hook command behavior: hook-enabled widgets run ${hookCommand}`

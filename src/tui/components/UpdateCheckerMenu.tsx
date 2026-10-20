@@ -154,7 +154,7 @@ export const UpdateCheckerMenu: React.FC<UpdateCheckerMenuProps> = ({
             {state.status === 'up-to-date' && (
                 <>
                     <Box marginTop={1}>
-                        <Text color='green'>ccstatusline is up to date.</Text>
+                        <Text color='green'>agstatusline is up to date.</Text>
                     </Box>
                     <List
                         marginTop={1}
@@ -180,7 +180,7 @@ export const UpdateCheckerMenu: React.FC<UpdateCheckerMenuProps> = ({
 
                     {state.installation.method === 'auto-update' && (
                         <Box marginTop={1} flexDirection='column'>
-                            <Text>No manual hook change is needed. Claude Code already runs @latest.</Text>
+                            <Text>No manual hook change is needed. Antigravity CLI already runs @latest.</Text>
                             <Text>The next @latest invocation will resolve the latest package.</Text>
                             <Text>
                                 Launch command for a fresh TUI:

@@ -24,7 +24,7 @@ function getExpectedCachePath(homeDir: string, configDir: string): string {
         .digest('hex')
         .slice(0, 16);
 
-    return path.join(homeDir, '.cache', 'ccstatusline', `block-cache-${configHash}.json`);
+    return path.join(homeDir, '.cache', 'agstatusline', `block-cache-${configHash}.json`);
 }
 
 describe('Block Cache Functions', () => {

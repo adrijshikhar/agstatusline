@@ -145,7 +145,7 @@ describe('buildConfigureStatusLineItems', () => {
 
     it('should show version requirement when not supported', () => {
         const items = buildConfigureStatusLineItems(null, false, 5, 5, 5);
-        expect(items[0]?.sublabel).toContain('requires Claude Code');
+        expect(items[0]?.sublabel).toContain('not supported by Antigravity CLI');
         expect(items[0]?.disabled).toBe(true);
     });
 

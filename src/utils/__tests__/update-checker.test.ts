@@ -7,7 +7,7 @@ import {
     vi
 } from 'vitest';
 
-import { CCSTATUSLINE_COMMANDS } from '../claude-settings';
+import { AGSTATUSLINE_COMMANDS } from '../antigravity-settings';
 import { initConfigPath } from '../config';
 import {
     buildUpdateCheckResult,
@@ -32,7 +32,7 @@ describe('update checker', () => {
         const result = buildUpdateCheckResult({
             currentVersion: '2.2.13',
             latestVersion: '2.2.13',
-            installedCommand: CCSTATUSLINE_COMMANDS.NPM,
+            installedCommand: AGSTATUSLINE_COMMANDS.AUTO_NPX,
             commandAvailability: ALL_AVAILABLE
         });
 
@@ -62,7 +62,7 @@ describe('update checker', () => {
     it('returns registry failure when the registry request fails', async () => {
         const result = await checkForUpdates({
             currentVersion: '2.2.13',
-            installedCommand: CCSTATUSLINE_COMMANDS.NPM,
+            installedCommand: AGSTATUSLINE_COMMANDS.AUTO_NPX,
             commandAvailability: ALL_AVAILABLE,
             latestVersionFetcher: () => Promise.reject(new Error('network unavailable'))
         });
@@ -82,7 +82,7 @@ describe('update checker', () => {
         const result = buildUpdateCheckResult({
             currentVersion: '2.2.13',
             latestVersion: '2.3.0',
-            installedCommand: CCSTATUSLINE_COMMANDS.GLOBAL,
+            installedCommand: AGSTATUSLINE_COMMANDS.GLOBAL,
             installationMetadata: {
                 method: 'pinned',
                 packageManager: 'npm',
@@ -99,7 +99,7 @@ describe('update checker', () => {
             {
                 id: 'npm-global',
                 packageManager: 'npm',
-                command: 'npm install -g ccstatusline@2.3.0',
+                command: 'npm install -g agstatusline@2.3.0',
                 version: '2.3.0',
                 available: true
             }
@@ -110,7 +110,7 @@ describe('update checker', () => {
         const result = buildUpdateCheckResult({
             currentVersion: '2.2.13',
             latestVersion: '2.3.0',
-            installedCommand: CCSTATUSLINE_COMMANDS.GLOBAL,
+            installedCommand: AGSTATUSLINE_COMMANDS.GLOBAL,
             installationMetadata: {
                 method: 'pinned',
                 packageManager: 'bun',
@@ -123,14 +123,14 @@ describe('update checker', () => {
         if (result.status !== 'update-available') {
             return;
         }
-        expect(result.actions.map(action => action.command)).toEqual(['bun add -g ccstatusline@2.3.0']);
+        expect(result.actions.map(action => action.command)).toEqual(['bun add -g agstatusline@2.3.0']);
     });
 
     it('offers both global update actions when pinned metadata has no resolved package manager', () => {
         const result = buildUpdateCheckResult({
             currentVersion: '2.2.13',
             latestVersion: '2.3.0',
-            installedCommand: CCSTATUSLINE_COMMANDS.GLOBAL,
+            installedCommand: AGSTATUSLINE_COMMANDS.GLOBAL,
             installationMetadata: {
                 method: 'pinned',
                 installedVersion: '2.2.13'
@@ -154,7 +154,7 @@ describe('update checker', () => {
         const result = buildUpdateCheckResult({
             currentVersion: '2.2.13',
             latestVersion: '2.3.0',
-            installedCommand: CCSTATUSLINE_COMMANDS.GLOBAL,
+            installedCommand: AGSTATUSLINE_COMMANDS.GLOBAL,
             installationMetadata: {
                 method: 'self-managed',
                 packageManager: 'npm'
@@ -183,7 +183,7 @@ describe('update checker', () => {
         await runGlobalPackageInstall('npm', '2.3.0', { platform: 'win32' });
 
         expect(execFileSpy.mock.calls[0]?.[0]).toBe('npm.cmd');
-        expect(execFileSpy.mock.calls[0]?.[1]).toEqual(['install', '-g', 'ccstatusline@2.3.0']);
+        expect(execFileSpy.mock.calls[0]?.[1]).toEqual(['install', '-g', 'agstatusline@2.3.0']);
         expect(execFileSpy.mock.calls[0]?.[2]).toEqual(expect.objectContaining({ shell: true }));
     });
 
@@ -192,7 +192,7 @@ describe('update checker', () => {
         const result = buildUpdateCheckResult({
             currentVersion: '2.2.13',
             latestVersion: '2.3.0',
-            installedCommand: CCSTATUSLINE_COMMANDS.BUNX,
+            installedCommand: AGSTATUSLINE_COMMANDS.AUTO_BUNX,
             commandAvailability: ALL_AVAILABLE
         });
 
@@ -201,14 +201,14 @@ describe('update checker', () => {
             return;
         }
         expect(result.actions).toEqual([]);
-        expect(result.autoUpdateLaunchCommand).toBe(CCSTATUSLINE_COMMANDS.BUNX);
+        expect(result.autoUpdateLaunchCommand).toBe(AGSTATUSLINE_COMMANDS.AUTO_BUNX);
     });
 
     it('offers both global commands for unknown global installs and marks unavailable managers', () => {
         const result = buildUpdateCheckResult({
             currentVersion: '2.2.13',
             latestVersion: '2.3.0',
-            installedCommand: CCSTATUSLINE_COMMANDS.GLOBAL,
+            installedCommand: AGSTATUSLINE_COMMANDS.GLOBAL,
             commandAvailability: {
                 ...ALL_AVAILABLE,
                 bun: false
@@ -227,14 +227,14 @@ describe('update checker', () => {
             {
                 id: 'npm-global',
                 packageManager: 'npm',
-                command: 'npm install -g ccstatusline@2.3.0',
+                command: 'npm install -g agstatusline@2.3.0',
                 version: '2.3.0',
                 available: true
             },
             {
                 id: 'bun-global',
                 packageManager: 'bun',
-                command: 'bun add -g ccstatusline@2.3.0',
+                command: 'bun add -g agstatusline@2.3.0',
                 version: '2.3.0',
                 available: false
             }

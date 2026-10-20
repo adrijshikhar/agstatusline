@@ -102,7 +102,7 @@ function useFixedCwd(): string {
 }
 
 function getCacheDir(home: string): string {
-    return path.join(home, '.cache', 'ccstatusline', 'custom-command-cache');
+    return path.join(home, '.cache', 'agstatusline', 'custom-command-cache');
 }
 
 function getOnlyCachePath(home: string): string {
