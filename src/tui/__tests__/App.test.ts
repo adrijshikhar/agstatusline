@@ -283,6 +283,22 @@ describe('Main menu structure', () => {
             'manageInstallation'
         )).toBe(8);
     });
+
+    it('labels install and uninstall for Antigravity CLI', () => {
+        const installItem = buildMainMenuItems(false, false)
+            .find(item => item !== '-' && item.value === 'install');
+        expect(installItem).toEqual(expect.objectContaining({ label: '📦 Install to Antigravity CLI' }));
+
+        const uninstallItem = buildMainMenuItems(true, false)
+            .find(item => item !== '-' && item.value === 'install');
+        expect(uninstallItem).toEqual(expect.objectContaining({ label: '🔌 Uninstall from Antigravity CLI' }));
+    });
+
+    it('labels the star GitHub menu item for agstatusline', () => {
+        const starItem = buildMainMenuItems(false, false)
+            .find(item => item !== '-' && item.value === 'starGithub');
+        expect(starItem).toEqual(expect.objectContaining({ label: '⭐ Like agstatusline? Star us on GitHub' }));
+    });
 });
 
 describe('Invalid-config TUI guards', () => {

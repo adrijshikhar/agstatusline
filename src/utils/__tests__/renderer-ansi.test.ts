@@ -216,8 +216,8 @@ describe('renderer minimalist mode', () => {
         const preRenderedLines = preRenderAllWidgets([widgets], settings, context);
         const content = preRenderedLines[0]?.[0]?.content;
 
-        // With minimalist mode, model widget should render raw value ('Claude') not 'Model: Claude'
-        expect(content).toBe('Claude');
+        // With minimalist mode, model widget should render raw value ('Gemini 2.5 Pro') not 'Model: Gemini 2.5 Pro'
+        expect(content).toBe('Gemini 2.5 Pro');
     });
 
     it('renders widget with label when minimalist mode is disabled', () => {
@@ -231,6 +231,6 @@ describe('renderer minimalist mode', () => {
         const preRenderedLines = preRenderAllWidgets([widgets], settings, context);
         const content = preRenderedLines[0]?.[0]?.content;
 
-        expect(content).toBe('Model: Claude');
+        expect(content).toBe('Model: Gemini 2.5 Pro');
     });
 });

@@ -8,7 +8,7 @@ import type {
 
 export class ModelWidget implements Widget {
     getDefaultColor(): string { return 'cyan'; }
-    getDescription(): string { return 'Displays the Claude model name (e.g., Claude 3.5 Sonnet)'; }
+    getDescription(): string { return 'Displays the Gemini model name (e.g., Gemini 2.5 Pro)'; }
     getDisplayName(): string { return 'Model'; }
     getCategory(): string { return 'Core'; }
     getEditorDisplay(item: WidgetItem): WidgetEditorDisplay {
@@ -17,7 +17,7 @@ export class ModelWidget implements Widget {
 
     render(item: WidgetItem, context: RenderContext, settings: Settings): string | null {
         if (context.isPreview) {
-            return item.rawValue ? 'Claude' : 'Model: Claude';
+            return item.rawValue ? 'Gemini 2.5 Pro' : 'Model: Gemini 2.5 Pro';
         }
 
         const model = context.data?.model;

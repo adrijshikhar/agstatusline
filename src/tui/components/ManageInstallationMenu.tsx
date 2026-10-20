@@ -78,12 +78,12 @@ export function buildManageInstallationItems(): ListEntry<ManageInstallationActi
         {
             label: '🔄 Check for Updates',
             value: 'checkUpdates',
-            description: 'Check npm for the latest ccstatusline version and update the pinned global package'
+            description: 'Check npm for the latest agstatusline version and update the pinned global package'
         },
         {
             label: '🔌 Uninstall',
             value: 'uninstall',
-            description: 'Remove ccstatusline from Claude Code settings, optionally removing global npm/bun packages'
+            description: 'Remove agstatusline from Antigravity settings, optionally removing global npm/bun packages'
         }
     ];
 }
@@ -101,27 +101,27 @@ export function buildUninstallItems(
 
     const items: ListEntry<UninstallSelection>[] = [
         {
-            label: 'Remove from Claude Code settings only',
+            label: 'Remove from Antigravity settings only',
             value: { packageManagers: [] },
-            description: 'Leaves any global npm or bun ccstatusline packages installed'
+            description: 'Leaves any global npm or bun agstatusline packages installed'
         }
     ];
 
     for (const packageManager of removableManagers) {
         items.push({
-            label: `Remove Claude settings and ${packageManager} global package`,
+            label: `Remove Antigravity settings and ${packageManager} global package`,
             value: { packageManagers: [packageManager] },
             description: `Runs ${packageManager === 'npm'
-                ? 'npm uninstall -g ccstatusline'
-                : 'bun remove -g ccstatusline'} after removing Claude Code settings`
+                ? 'npm uninstall -g agstatusline'
+                : 'bun remove -g agstatusline'} after removing Antigravity settings`
         });
     }
 
     if (removableManagers.length > 1) {
         items.push({
-            label: `Remove Claude settings and ${formatPackageManagers(removableManagers)} global packages`,
+            label: `Remove Antigravity settings and ${formatPackageManagers(removableManagers)} global packages`,
             value: { packageManagers: removableManagers },
-            description: 'Removes every detected global ccstatusline package after removing Claude Code settings'
+            description: 'Removes every detected global agstatusline package after removing Antigravity settings'
         });
     }
 
@@ -197,7 +197,7 @@ export const UninstallMenu: React.FC<UninstallMenuProps> = ({
 
     return (
         <Box flexDirection='column'>
-            <Text bold>Uninstall ccstatusline</Text>
+            <Text bold>Uninstall agstatusline</Text>
             <Box marginTop={1}>
                 <Text dimColor>
                     Choose what to remove from this machine.
@@ -205,7 +205,7 @@ export const UninstallMenu: React.FC<UninstallMenuProps> = ({
             </Box>
             {detectedManagers.length === 0 && (
                 <Box marginTop={1}>
-                    <Text dimColor>No global npm or bun ccstatusline package was detected.</Text>
+                    <Text dimColor>No global npm or bun agstatusline package was detected.</Text>
                 </Box>
             )}
             <List

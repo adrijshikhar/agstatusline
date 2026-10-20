@@ -58,9 +58,9 @@ function getInstallationMenuItem(
 ): MainMenuItem {
     if (!isClaudeInstalled) {
         return {
-            label: '📦 Install to Claude Code',
+            label: '📦 Install to Antigravity CLI',
             value: 'install',
-            description: 'Add ccstatusline to your Claude Code settings for automatic status line rendering'
+            description: 'Add agstatusline to your Antigravity settings for automatic status line rendering'
         };
     }
 
@@ -68,14 +68,14 @@ function getInstallationMenuItem(
         return {
             label: '🧰 Manage Installation',
             value: 'manageInstallation',
-            description: 'Check pinned global package updates or uninstall ccstatusline'
+            description: 'Check pinned global package updates or uninstall agstatusline'
         };
     }
 
     return {
-        label: '🔌 Uninstall from Claude Code',
+        label: '🔌 Uninstall from Antigravity CLI',
         value: 'install',
-        description: 'Remove ccstatusline from your Claude Code settings'
+        description: 'Remove agstatusline from your Antigravity settings'
     };
 }
 
@@ -120,7 +120,7 @@ export function buildMainMenuItems(
             sublabel: isClaudeInstalled ? undefined : '(install first)',
             disabled: !isClaudeInstalled,
             value: 'configureStatusLine',
-            description: 'Configure Claude Code status line settings like refresh interval'
+            description: 'Configure Antigravity CLI status line settings like refresh interval'
         },
         '-',
         {
@@ -152,9 +152,9 @@ export function buildMainMenuItems(
             },
             '-',
             {
-                label: '⭐ Like ccstatusline? Star us on GitHub',
+                label: '⭐ Like agstatusline? Star us on GitHub',
                 value: 'starGithub',
-                description: 'Open the ccstatusline GitHub repository in your browser so you can star the project'
+                description: 'Open the agstatusline GitHub repository in your browser so you can star the project'
             }
         );
     } else {
@@ -167,9 +167,9 @@ export function buildMainMenuItems(
             },
             '-',
             {
-                label: '⭐ Like ccstatusline? Star us on GitHub',
+                label: '⭐ Like agstatusline? Star us on GitHub',
                 value: 'starGithub',
-                description: 'Open the ccstatusline GitHub repository in your browser so you can star the project'
+                description: 'Open the agstatusline GitHub repository in your browser so you can star the project'
             }
         );
     }

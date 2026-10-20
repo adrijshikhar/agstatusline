@@ -57,8 +57,12 @@ describe('ModelWidget', () => {
 
         it('returns preview text in preview mode', () => {
             const ctx = makeContext({ isPreview: true });
-            expect(new ModelWidget().render(ITEM, ctx, DEFAULT_SETTINGS)).toBe('Model: Claude');
-            expect(new ModelWidget().render(RAW_ITEM, ctx, DEFAULT_SETTINGS)).toBe('Claude');
+            expect(new ModelWidget().render(ITEM, ctx, DEFAULT_SETTINGS)).toBe('Model: Gemini 2.5 Pro');
+            expect(new ModelWidget().render(RAW_ITEM, ctx, DEFAULT_SETTINGS)).toBe('Gemini 2.5 Pro');
+        });
+
+        it('describes Gemini models', () => {
+            expect(new ModelWidget().getDescription()).toContain('Gemini');
         });
 
         it('falls back to model id when display_name is absent', () => {

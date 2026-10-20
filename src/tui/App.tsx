@@ -20,17 +20,17 @@ import type {
 } from '../types/Settings';
 import type { WidgetItem } from '../types/Widget';
 import {
+    getAntigravitySettingsPath,
+    installStatusLine,
+    isStatusLineInstalled,
+    uninstallStatusLine
+} from '../utils/antigravity-settings';
+import {
     buildStatusLineCommand,
     classifyInstallation,
-    getClaudeSettingsPath,
-    getExistingStatusLine,
     getPackageCommandAvailability,
-    installStatusLine,
     isClaudeCodeVersionAtLeast,
-    isInstalled,
-    isKnownCommand,
-    setRefreshInterval,
-    uninstallStatusLine
+    setRefreshInterval
 } from '../utils/claude-settings';
 import { cloneSettings } from '../utils/clone-settings';
 import {
@@ -73,7 +73,6 @@ import {
     type UpdateAction
 } from '../utils/update-checker';
 
-import { loadClaudeStatusLineState } from './claude-status';
 import {
     ColorMenu,
     ConfirmDialog,
@@ -104,7 +103,7 @@ import {
     type ListEntry
 } from './components/List';
 
-const GITHUB_REPO_URL = 'https://github.com/sirmalloc/ccstatusline';
+const GITHUB_REPO_URL = 'https://github.com/adrijshikhar/agstatusline';
 
 interface FlashMessage {
     text: string;
@@ -211,8 +210,8 @@ function getPinnedMismatchItems(
             disabled: !canRunPackageManager,
             sublabel: canRunPackageManager ? undefined : `(${mismatch.packageManager} not installed)`,
             description: `Runs ${mismatch.packageManager === 'npm'
-                ? `npm install -g ccstatusline@${mismatch.runningVersion}`
-                : `bun add -g ccstatusline@${mismatch.runningVersion}`}`
+                ? `npm install -g agstatusline@${mismatch.runningVersion}`
+                : `bun add -g agstatusline@${mismatch.runningVersion}`}`
         });
     }
 
@@ -242,7 +241,7 @@ const PinnedVersionMismatchScreen: React.FC<PinnedVersionMismatchScreenProps> = 
             <Text bold>Pinned Install Version Mismatch</Text>
             <Box marginTop={1} flexDirection='column'>
                 <Text color='yellow'>
-                    Claude Code is pinned to ccstatusline v
+                    Antigravity CLI is pinned to agstatusline v
                     {mismatch.installedVersion}
                     , but this TUI is v
                     {mismatch.runningVersion}
@@ -283,20 +282,20 @@ const PinnedVersionMismatchScreen: React.FC<PinnedVersionMismatchScreenProps> = 
 
 function getGlobalUninstallCommand(packageManager: GlobalPackageManager): string {
     return packageManager === 'npm'
-        ? 'npm uninstall -g ccstatusline'
-        : 'bun remove -g ccstatusline';
+        ? 'npm uninstall -g agstatusline'
+        : 'bun remove -g agstatusline';
 }
 
 function buildUninstallConfirmMessage(selection: UninstallSelection): string {
     if (selection.packageManagers.length === 0) {
-        return `This will remove ccstatusline from ${getClaudeSettingsPath()}. Continue?`;
+        return `This will remove agstatusline from ${getAntigravitySettingsPath()}. Continue?`;
     }
 
     const commands = selection.packageManagers
         .map(packageManager => getGlobalUninstallCommand(packageManager))
         .join('\n');
 
-    return `This will remove ccstatusline from ${getClaudeSettingsPath()} and run:\n\n${commands}\n\nContinue?`;
+    return `This will remove agstatusline from ${getAntigravitySettingsPath()} and run:\n\n${commands}\n\nContinue?`;
 }
 
 function clearInstallationMetadata(settings: Settings | null): Settings | null {
@@ -332,10 +331,10 @@ function joinCommandPath(dir: string, command: string): string {
 
 function getCommandFileName(globalBinDir: string, platform: NodeJS.Platform): string {
     if (platform === 'win32' || /^[a-z]:[\\/]/i.test(globalBinDir)) {
-        return 'ccstatusline.cmd';
+        return 'agstatusline.cmd';
     }
 
-    return 'ccstatusline';
+    return 'agstatusline';
 }
 
 function getPinnedGlobalRelaunchCommand(packageManager: GlobalPackageManager): string {
@@ -355,7 +354,7 @@ function getPinnedGlobalRelaunchCommand(packageManager: GlobalPackageManager): s
         );
     }
 
-    return 'ccstatusline';
+    return 'agstatusline';
 }
 
 export function getPinnedVersionMismatch(
@@ -490,17 +489,18 @@ export const App: React.FC = () => {
     const [importValidation, setImportValidation] = useState<ImportValidationResult | null>(null);
 
     useEffect(() => {
-        void loadClaudeStatusLineState()
-            .then((statusLineState) => {
-                setExistingStatusLine(statusLineState.existingStatusLine);
-                setCurrentRefreshInterval(statusLineState.refreshInterval);
+        void isStatusLineInstalled()
+            .then((status) => {
+                setIsClaudeInstalled(status.installed);
+                setExistingStatusLine(status.command ?? null);
             })
             .catch(() => {
+                setIsClaudeInstalled(false);
                 setExistingStatusLine(null);
-                setCurrentRefreshInterval(null);
             })
             .finally(() => {
                 setHasLoadedClaudeStatus(true);
+                setHasLoadedInstalledState(true);
             });
         void loadSettings().then((loadedSettings) => {
             // Set global chalk level based on settings (default to 256 colors for compatibility)
@@ -512,12 +512,6 @@ export const App: React.FC = () => {
             // reset by any later loadSettings/saveInstallationMetadata call.
             setConfigLoadError(getConfigLoadError());
         });
-        void isInstalled()
-            .then(setIsClaudeInstalled)
-            .catch(() => { setIsClaudeInstalled(false); })
-            .finally(() => {
-                setHasLoadedInstalledState(true);
-            });
 
         // Check for Powerline fonts on startup (use sync version that doesn't call execSync)
         const fontStatus = checkPowerlineFonts();
@@ -567,7 +561,7 @@ export const App: React.FC = () => {
                 ? inspectActiveGlobalCommand({ commandAvailability })
                 : null;
             const effectiveInstallation = getPathInferredInstallation(installation, activeCommand);
-            const mismatch = getPinnedVersionMismatch(effectiveInstallation, getPackageVersion(), 'ccstatusline');
+            const mismatch = getPinnedVersionMismatch(effectiveInstallation, getPackageVersion(), 'agstatusline');
             if (mismatch) {
                 return;
             }
@@ -615,14 +609,17 @@ export const App: React.FC = () => {
     ), []);
 
     const handleInstallSelection = useCallback((selection: InstallSelection) => {
-        void getExistingStatusLine().then((existing) => {
-            const isAlreadyInstalled = isKnownCommand(existing ?? '');
-            const finalCommand = buildStatusLineCommand(selection.commandMode);
+        void isStatusLineInstalled().then((status) => {
+            const existing = status.command ?? null;
+            const isAlreadyInstalled = status.installed;
+            const finalCommand = selection.commandMode === 'global'
+                ? (isCustomConfigPath() ? `agstatusline --config "${getConfigPath()}"` : 'agstatusline')
+                : buildStatusLineCommand(selection.commandMode).replace(/\bccstatusline\b/g, 'agstatusline');
             const hookCommand = `${finalCommand} --hook`;
             const sideEffects = [
-                `Claude settings path: ${getClaudeSettingsPath()}`,
+                `Antigravity settings path: ${getAntigravitySettingsPath()}`,
                 ...(selection.globalInstallCommand
-                    ? [`Global install command before settings write: ${selection.globalInstallCommand}`]
+                    ? [`Global install command before settings write: ${selection.globalInstallCommand.replace(/\bccstatusline\b/g, 'agstatusline')}`]
                     : []),
                 `Final statusLine.command: ${finalCommand}`,
                 `Hook command behavior: hook-enabled widgets run ${hookCommand}`
@@ -632,7 +629,7 @@ export const App: React.FC = () => {
             if (existing && !isAlreadyInstalled) {
                 message = `A status line is already configured: "${existing}"\n\n${message}\n\nReplace it?`;
             } else if (isAlreadyInstalled) {
-                message = `ccstatusline is already installed.\n\n${message}\n\nUpdate it?`;
+                message = `agstatusline is already installed.\n\n${message}\n\nUpdate it?`;
             } else {
                 message = `${message}\n\nContinue?`;
             }
@@ -647,19 +644,18 @@ export const App: React.FC = () => {
                         }
 
                         await installStatusLine({
-                            commandMode: selection.commandMode,
-                            supportsRefreshInterval,
-                            installationMetadata: selection.metadata
+                            command: finalCommand,
+                            customConfigPath: isCustomConfigPath() ? getConfigPath() : undefined
                         });
+                        await saveInstallationMetadata(selection.metadata);
 
                         // Install re-ran loadSettings internally — re-sync the captured
                         // config-load error so the banner/guard reflect the file's current state.
                         setConfigLoadError(getConfigLoadError());
 
-                        const installedStatusLineState = await loadClaudeStatusLineState();
-                        setIsClaudeInstalled(true);
-                        setExistingStatusLine(installedStatusLineState.existingStatusLine ?? finalCommand);
-                        setCurrentRefreshInterval(installedStatusLineState.refreshInterval);
+                        const installedStatus = await isStatusLineInstalled();
+                        setIsClaudeInstalled(installedStatus.installed);
+                        setExistingStatusLine(installedStatus.command ?? finalCommand);
                         setSettings(prev => prev
                             ? { ...prev, installation: selection.metadata }
                             : prev);
@@ -678,7 +674,7 @@ export const App: React.FC = () => {
                             setFlashMessage(null);
                             setFlowNotice({
                                 title: 'Install Complete',
-                                message: `Installed to Claude Code.\n\n${resolutionWarning}`,
+                                message: `Installed to Antigravity CLI.\n\n${resolutionWarning}`,
                                 color: 'yellow',
                                 continueScreen: 'main'
                             });
@@ -686,7 +682,7 @@ export const App: React.FC = () => {
                         } else {
                             setScreen('main');
                             setFlashMessage({
-                                text: '✓ Installed to Claude Code',
+                                text: '✓ Installed to Antigravity CLI',
                                 color: 'green'
                             });
                         }
@@ -702,7 +698,7 @@ export const App: React.FC = () => {
             });
             setScreen('confirm');
         });
-    }, [getGlobalResolutionWarning, supportsRefreshInterval]);
+    }, [getGlobalResolutionWarning]);
 
     const handleInstallMenuCancel = useCallback(() => {
         setMenuSelections(clearInstallMenuSelection);
@@ -732,7 +728,7 @@ export const App: React.FC = () => {
 
     const handleRunUpdateAction = useCallback((action: UpdateAction) => {
         setConfirmDialog({
-            message: `Run global update command?\n\n${action.command}\n\nClaude settings will not be changed.`,
+            message: `Run global update command?\n\n${action.command}\n\nAntigravity settings will not be changed.`,
             cancelScreen: 'updates',
             action: async () => {
                 try {
@@ -901,12 +897,13 @@ export const App: React.FC = () => {
             message: buildUninstallConfirmMessage(selection),
             cancelScreen,
             action: async () => {
-                let removedClaudeSettings = false;
+                let removedAntigravitySettings = false;
 
                 try {
                     await uninstallStatusLine();
+                    await saveInstallationMetadata(undefined);
                     setConfigLoadError(getConfigLoadError());
-                    removedClaudeSettings = true;
+                    removedAntigravitySettings = true;
 
                     for (const packageManager of selection.packageManagers) {
                         await runGlobalPackageUninstall(packageManager);
@@ -923,13 +920,13 @@ export const App: React.FC = () => {
                     }));
                     setFlashMessage({
                         text: selection.packageManagers.length > 0
-                            ? '✓ Uninstalled from Claude Code and removed global package'
-                            : '✓ Uninstalled from Claude Code',
+                            ? '✓ Uninstalled from Antigravity CLI and removed global package'
+                            : '✓ Uninstalled from Antigravity CLI',
                         color: 'green'
                     });
                     setScreen('main');
                 } catch {
-                    if (removedClaudeSettings) {
+                    if (removedAntigravitySettings) {
                         setIsClaudeInstalled(false);
                         setExistingStatusLine(null);
                         setCurrentRefreshInterval(null);
@@ -940,7 +937,7 @@ export const App: React.FC = () => {
                             main: getMainMenuInstallSelectionIndex(false)
                         }));
                         setFlashMessage({
-                            text: '✗ Removed Claude settings, but global package removal failed',
+                            text: '✗ Removed Antigravity settings, but global package removal failed',
                             color: 'red'
                         });
                         setScreen('main');
@@ -1018,7 +1015,7 @@ export const App: React.FC = () => {
                 break;
             case 'starGithub':
                 setConfirmDialog({
-                    message: `Open the ccstatusline GitHub repository in your browser?\n\n${GITHUB_REPO_URL}`,
+                    message: `Open the agstatusline GitHub repository in your browser?\n\n${GITHUB_REPO_URL}`,
                     action: () => {
                         const result = openExternalUrl(GITHUB_REPO_URL);
                         if (result.success) {
@@ -1081,7 +1078,7 @@ export const App: React.FC = () => {
                 <Box marginBottom={1}>
                     <Text bold>
                         <Gradient name='retro'>
-                            CCStatusline Configuration
+                            agstatusline Configuration
                         </Gradient>
                     </Text>
                     <Text bold>
@@ -1127,7 +1124,7 @@ export const App: React.FC = () => {
             <Box marginBottom={1}>
                 <Text bold>
                     <Gradient name='retro'>
-                        CCStatusline Configuration
+                        agstatusline Configuration
                     </Gradient>
                 </Text>
                 <Text bold>

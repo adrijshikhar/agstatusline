@@ -14,7 +14,7 @@ interface ExportConfigDialogProps {
     onCancel: () => void;
 }
 
-const DEFAULT_EXPORT_PATH = path.join(os.homedir(), 'ccstatusline-config.json');
+const DEFAULT_EXPORT_PATH = path.join(os.homedir(), 'agstatusline-config.json');
 
 export function ExportConfigDialog({ onExport, onCancel }: ExportConfigDialogProps): React.JSX.Element {
     const [inputValue, setInputValue] = useState(DEFAULT_EXPORT_PATH);
