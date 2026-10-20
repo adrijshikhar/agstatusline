@@ -4,6 +4,7 @@ import {
     mkdir,
     readFile,
     rename,
+    stat,
     unlink,
     writeFile
 } from 'node:fs/promises';
@@ -145,12 +146,21 @@ export interface StatusLineInstallStatus {
     enabled?: boolean;
 }
 
+async function getReplacedFileMode(filePath: string): Promise<number> {
+    try {
+        return (await stat(filePath)).mode & 0o777;
+    } catch {
+        return 0o666;
+    }
+}
+
 async function writeJsonAtomic(file: string, data: unknown): Promise<void> {
     const dir = dirname(file);
     await mkdir(dir, { recursive: true });
     const tempPath = resolve(dir, `${basename(file)}.${process.pid}.${Date.now()}.tmp`);
+    const mode = await getReplacedFileMode(file);
     try {
-        await writeFile(tempPath, JSON.stringify(data, null, 2), 'utf8');
+        await writeFile(tempPath, JSON.stringify(data, null, 2), { encoding: 'utf8', mode });
         await rename(tempPath, file);
     } catch (error) {
         await unlink(tempPath).catch(() => undefined);

@@ -429,6 +429,19 @@ describe('config utilities', () => {
         expect(leftovers).toEqual([]);
     });
 
+    // Custom commands can carry credentials, so a save must not open up a
+    // settings file the user made private
+    it.skipIf(process.platform === 'win32')('keeps a private settings file private when saving', async () => {
+        const { settingsPath, configDir } = getSettingsPaths();
+        fs.mkdirSync(configDir, { recursive: true });
+        fs.writeFileSync(settingsPath, JSON.stringify({ version: CURRENT_VERSION, lines: [[], [], []] }), 'utf-8');
+        fs.chmodSync(settingsPath, 0o600);
+
+        await saveSettings({ ...DEFAULT_SETTINGS });
+
+        expect(fs.statSync(settingsPath).mode & 0o777).toBe(0o600);
+    });
+
     it('cleans up the temp file and rethrows when the write cannot be renamed into place', async () => {
         const { settingsPath, configDir } = getSettingsPaths();
         fs.mkdirSync(configDir, { recursive: true });
