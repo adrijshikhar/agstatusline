@@ -7,31 +7,36 @@ import type {
 } from '../types/Widget';
 import { getAntigravityUser } from '../utils/antigravity-auth';
 
+import { formatRawOrLabeledValue } from './shared/raw-or-labeled';
+
+const LABEL = 'Account: ';
+
 export class AccountEmailWidget implements Widget {
     getDefaultColor(): string { return 'blue'; }
     getDescription(): string { return 'Displays the email of the currently logged-in Antigravity account'; }
     getDisplayName(): string { return 'Account Email'; }
     getCategory(): string { return 'Session'; }
+    getLabelPrefix(): string { return LABEL; }
     getEditorDisplay(item: WidgetItem): WidgetEditorDisplay {
         return { displayText: this.getDisplayName() };
     }
 
-    render(item: WidgetItem, context: RenderContext, settings: Settings): string | null {
+    render(item: WidgetItem, context: RenderContext, _settings: Settings): string | null {
         if (context.isPreview) {
-            return item.rawValue ? 'you@example.com' : 'Account: you@example.com';
+            return formatRawOrLabeledValue(item, this.getLabelPrefix(), 'you@example.com');
         }
 
         // 1. Direct telemetry payload email
         if (typeof context.data?.email === 'string' && context.data.email.trim().length > 0) {
             const email = context.data.email.trim();
-            return item.rawValue ? email : `Account: ${email}`;
+            return formatRawOrLabeledValue(item, this.getLabelPrefix(), email);
         }
 
         // 2. Native Antigravity Google OAuth token
         const agUser = getAntigravityUser();
         if (agUser?.email && agUser.email.trim().length > 0) {
             const email = agUser.email.trim();
-            return item.rawValue ? email : `Account: ${email}`;
+            return formatRawOrLabeledValue(item, this.getLabelPrefix(), email);
         }
 
         return null;

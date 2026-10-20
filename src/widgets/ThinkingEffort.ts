@@ -14,7 +14,11 @@ import {
     type TranscriptThinkingEffort
 } from '../utils/jsonl';
 
+import { formatRawOrLabeledValue } from './shared/raw-or-labeled';
+
 export type ThinkingEffortLevel = TranscriptThinkingEffort;
+
+const LABEL = 'Thinking: ';
 
 const EFFORT_PARENTHESES_REGEX = /\((low|medium|high|xhigh|max)\)/i;
 
@@ -107,17 +111,18 @@ export class ThinkingEffortWidget implements Widget {
     getDescription(): string { return 'Displays the current thinking effort level (low, medium, high, xhigh, max).\nUnknown levels are shown with a trailing "?" (e.g. "super-max?").'; }
     getDisplayName(): string { return 'Thinking Effort'; }
     getCategory(): string { return 'Core'; }
+    getLabelPrefix(): string { return LABEL; }
     getEditorDisplay(item: WidgetItem): WidgetEditorDisplay {
         return { displayText: this.getDisplayName() };
     }
 
-    render(item: WidgetItem, context: RenderContext, settings: Settings): string | null {
+    render(item: WidgetItem, context: RenderContext, _settings: Settings): string | null {
         if (context.isPreview) {
-            return item.rawValue ? 'high' : 'Thinking: high';
+            return formatRawOrLabeledValue(item, this.getLabelPrefix(), 'high');
         }
 
         const effort = formatEffort(resolveThinkingEffort(context));
-        return item.rawValue ? effort : `Thinking: ${effort}`;
+        return formatRawOrLabeledValue(item, this.getLabelPrefix(), effort);
     }
 
     supportsRawValue(): boolean { return true; }

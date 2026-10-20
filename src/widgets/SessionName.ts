@@ -10,18 +10,23 @@ import {
     getTranscriptSessionName
 } from '../utils/jsonl-session';
 
+import { formatRawOrLabeledValue } from './shared/raw-or-labeled';
+
+const LABEL = 'Session: ';
+
 export class SessionNameWidget implements Widget {
     getDefaultColor(): string { return 'cyan'; }
     getDescription(): string { return 'Shows the session name set via /rename command in Antigravity or Claude Code'; }
     getDisplayName(): string { return 'Session Name'; }
     getCategory(): string { return 'Session'; }
+    getLabelPrefix(): string { return LABEL; }
     getEditorDisplay(item: WidgetItem): WidgetEditorDisplay {
         return { displayText: this.getDisplayName() };
     }
 
-    render(item: WidgetItem, context: RenderContext, settings: Settings): string | null {
+    render(item: WidgetItem, context: RenderContext, _settings: Settings): string | null {
         if (context.isPreview) {
-            return item.rawValue ? 'my-session' : 'Session: my-session';
+            return formatRawOrLabeledValue(item, this.getLabelPrefix(), 'my-session');
         }
 
         const payloadTitle = context.data?.conversation_title
@@ -29,7 +34,7 @@ export class SessionNameWidget implements Widget {
             ?? context.data?.conversation_name;
         if (typeof payloadTitle === 'string' && payloadTitle.trim().length > 0) {
             const trimmed = payloadTitle.trim();
-            return item.rawValue ? trimmed : `Session: ${trimmed}`;
+            return formatRawOrLabeledValue(item, this.getLabelPrefix(), trimmed);
         }
 
         let sessionName = context.transcriptSessionName;
@@ -44,7 +49,7 @@ export class SessionNameWidget implements Widget {
         }
 
         const trimmed = sessionName.trim();
-        return item.rawValue ? trimmed : `Session: ${trimmed}`;
+        return formatRawOrLabeledValue(item, this.getLabelPrefix(), trimmed);
     }
 
     supportsRawValue(): boolean { return true; }

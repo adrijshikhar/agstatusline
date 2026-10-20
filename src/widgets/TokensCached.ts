@@ -13,12 +13,14 @@ import { isHidden } from './shared/hideable';
 import { formatRawOrLabeledValue } from './shared/raw-or-labeled';
 
 const ZERO_HIDEABLE_STATE: HideableState = { key: 'zero', label: 'when token count is zero' };
+const LABEL = 'Cached: ';
 
 export class TokensCachedWidget implements Widget {
     getDefaultColor(): string { return 'cyan'; }
     getDescription(): string { return 'Shows cached token count for the current session'; }
     getDisplayName(): string { return 'Tokens Cached'; }
     getCategory(): string { return 'Tokens'; }
+    getLabelPrefix(): string { return LABEL; }
     getEditorDisplay(item: WidgetItem): WidgetEditorDisplay {
         return { displayText: this.getDisplayName() };
     }
@@ -30,14 +32,14 @@ export class TokensCachedWidget implements Widget {
     render(item: WidgetItem, context: RenderContext, settings: Settings): string | null {
         const format = resolveNumberFormat('token', item, settings);
         if (context.isPreview) {
-            return formatRawOrLabeledValue(item, 'Cached: ', formatTokens(12000, format));
+            return formatRawOrLabeledValue(item, this.getLabelPrefix(), formatTokens(12000, format));
         }
 
         if (context.tokenMetrics) {
             if (context.tokenMetrics.cachedTokens === 0 && isHidden(item, ZERO_HIDEABLE_STATE.key)) {
                 return null;
             }
-            return formatRawOrLabeledValue(item, 'Cached: ', formatTokens(context.tokenMetrics.cachedTokens, format));
+            return formatRawOrLabeledValue(item, this.getLabelPrefix(), formatTokens(context.tokenMetrics.cachedTokens, format));
         }
         return null;
     }
