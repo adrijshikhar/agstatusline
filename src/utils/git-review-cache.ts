@@ -17,6 +17,10 @@ import os from 'node:os';
 import path from 'node:path';
 
 import {
+    getVisibleWidth,
+    truncateStyledText
+} from './ansi';
+import {
     GIT_HARDENING_ARGS,
     withGitHardeningEnv
 } from './git-hardening';
@@ -779,7 +783,9 @@ export function getGitReviewStatusLabel(state: string, reviewDecision: string): 
 
 export function truncateTitle(title: string, maxWidth?: number): string {
     const limit = maxWidth ?? DEFAULT_TITLE_MAX_WIDTH;
-    if (title.length <= limit)
+    if (getVisibleWidth(title) <= limit)
         return title;
-    return `${title.slice(0, limit - 1)}…`;
+    // Cut by terminal columns and whole characters, so wide (CJK) characters
+    // count twice and an emoji is never split in half
+    return `${truncateStyledText(title, limit - 1, { ellipsis: false })}…`;
 }

@@ -199,6 +199,25 @@ describe('git-remote utils', () => {
                 expect(parseRemoteUrl('ftp://github.com/owner/repo.git')).toBeNull();
             });
 
+            it('ignores repeated slashes around and inside the path', () => {
+                expect(parseRemoteUrl('https://github.com//owner//repo.git//')).toEqual({
+                    host: 'github.com',
+                    owner: 'owner',
+                    repo: 'repo'
+                });
+            });
+
+            // Remote URLs come from the repository's own config
+            it('parses a URL with a long run of slashes in linear time', () => {
+                const started = Date.now();
+                expect(parseRemoteUrl(`https://github.com/owner${'/'.repeat(100_000)}repo.git`)).toEqual({
+                    host: 'github.com',
+                    owner: 'owner',
+                    repo: 'repo'
+                });
+                expect(Date.now() - started).toBeLessThan(1000);
+            });
+
             it('trims whitespace from URL', () => {
                 expect(parseRemoteUrl('  https://github.com/owner/repo.git  ')).toEqual({
                     host: 'github.com',
@@ -320,6 +339,28 @@ describe('git-remote utils', () => {
             const result = getForkStatus({});
 
             expect(result.isFork).toBe(true);
+        });
+
+        it('detects fork when remotes are inverted: origin is the parent, fork is the personal copy', () => {
+            mockExecFileSync.mockReturnValueOnce('https://github.com/upstream-owner/repo.git\n');
+            mockExecFileSync.mockImplementationOnce(() => { throw new Error('No such remote'); });
+            mockExecFileSync.mockReturnValueOnce('https://github.com/my-user/repo.git\n');
+
+            const result = getForkStatus({});
+
+            expect(result.isFork).toBe(true);
+            expect(result.origin?.owner).toBe('upstream-owner');
+            expect(result.upstream).toBeNull();
+        });
+
+        it('returns not a fork when the fork remote points to the same repo as origin', () => {
+            mockExecFileSync.mockReturnValueOnce('https://github.com/owner/repo.git\n');
+            mockExecFileSync.mockImplementationOnce(() => { throw new Error('No such remote'); });
+            mockExecFileSync.mockReturnValueOnce('https://github.com/owner/repo.git\n');
+
+            const result = getForkStatus({});
+
+            expect(result.isFork).toBe(false);
         });
 
         it('returns not a fork when only origin exists', () => {
