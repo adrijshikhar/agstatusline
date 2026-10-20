@@ -28,7 +28,7 @@ function getClaudeSettingsPath(): string {
 
 describe('syncWidgetHooks', () => {
     beforeEach(() => {
-        testClaudeConfigDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-hooks-'));
+        testClaudeConfigDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-hooks-'));
         process.env.CLAUDE_CONFIG_DIR = testClaudeConfigDir;
     });
 
@@ -52,7 +52,7 @@ describe('syncWidgetHooks', () => {
             hooks: {
                 PreToolUse: [
                     {
-                        _tag: 'ccstatusline-managed',
+                        _tag: 'agstatusline-managed',
                         matcher: 'Skill',
                         hooks: [{ type: 'command', command: 'old-command --hook' }]
                     },
@@ -63,7 +63,7 @@ describe('syncWidgetHooks', () => {
                 ],
                 UserPromptSubmit: [
                     {
-                        _tag: 'ccstatusline-managed',
+                        _tag: 'agstatusline-managed',
                         hooks: [{ type: 'command', command: 'old-command --hook' }]
                     }
                 ]
@@ -117,14 +117,14 @@ describe('syncWidgetHooks', () => {
                     hooks: [{ type: 'command', command: 'keep-command' }]
                 },
                 {
-                    _tag: 'ccstatusline-managed',
+                    _tag: 'agstatusline-managed',
                     matcher: 'Skill',
                     hooks: [{ type: 'command', command: `${command} --hook` }]
                 }
             ],
             UserPromptSubmit: [
                 {
-                    _tag: 'ccstatusline-managed',
+                    _tag: 'agstatusline-managed',
                     hooks: [{ type: 'command', command: `${command} --hook` }]
                 }
             ]
@@ -161,14 +161,14 @@ describe('syncWidgetHooks', () => {
                     hooks: [{ type: 'command', command: 'keep-command' }]
                 },
                 {
-                    _tag: 'ccstatusline-managed',
+                    _tag: 'agstatusline-managed',
                     matcher: 'Skill',
                     hooks: [{ type: 'command', command: `${command} --hook` }]
                 }
             ],
             UserPromptSubmit: [
                 {
-                    _tag: 'ccstatusline-managed',
+                    _tag: 'agstatusline-managed',
                     hooks: [{ type: 'command', command: `${command} --hook` }]
                 }
             ]
@@ -192,7 +192,7 @@ describe('syncWidgetHooks', () => {
                         hooks: [{ type: 'command', command: 'npx ccstatusline --hook' }]
                     },
                     {
-                        _tag: 'ccstatusline-managed',
+                        _tag: 'agstatusline-managed',
                         matcher: 'Managed',
                         hooks: [{ type: 'command', command: '/Users/test/.bun/bin/ccstatusline --hook' }]
                     }

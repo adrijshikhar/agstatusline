@@ -50,6 +50,7 @@ describe('terminal utils', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         vi.restoreAllMocks();
+        delete process.env.AGSTATUSLINE_WIDTH;
         delete process.env.CCSTATUSLINE_WIDTH;
     });
 
@@ -59,6 +60,7 @@ describe('terminal utils', () => {
 
     afterEach(() => {
         vi.restoreAllMocks();
+        delete process.env.AGSTATUSLINE_WIDTH;
         delete process.env.CCSTATUSLINE_WIDTH;
         setPlatform(ORIGINAL_PLATFORM);
     });
@@ -218,6 +220,13 @@ describe('terminal utils', () => {
         mockExecFileSync.mockImplementationOnce(() => { throw new Error('tput unavailable'); });
 
         expect(canDetectTerminalWidth()).toBe(false);
+    });
+
+    it('honors AGSTATUSLINE_WIDTH override before probing', () => {
+        process.env.AGSTATUSLINE_WIDTH = '220';
+
+        expect(getTerminalWidth()).toBe(220);
+        expect(mockExecFileSync.mock.calls.length).toBe(0);
     });
 
     it('honors CCSTATUSLINE_WIDTH override before probing', () => {

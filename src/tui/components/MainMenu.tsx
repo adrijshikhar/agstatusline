@@ -29,7 +29,7 @@ export type MainMenuOption = 'lines'
 
 export interface MainMenuProps {
     onSelect: (value: MainMenuOption, index: number) => void;
-    isClaudeInstalled: boolean;
+    isAntigravityInstalled: boolean;
     hasChanges: boolean;
     initialSelection?: number;
     powerlineFontStatus: PowerlineFontStatus;
@@ -53,10 +53,10 @@ function usesManageInstallation(installation?: InstallationMetadata): boolean {
 }
 
 function getInstallationMenuItem(
-    isClaudeInstalled: boolean,
+    isAntigravityInstalled: boolean,
     installation?: InstallationMetadata
 ): MainMenuItem {
-    if (!isClaudeInstalled) {
+    if (!isAntigravityInstalled) {
         return {
             label: '📦 Install to Antigravity CLI',
             value: 'install',
@@ -80,7 +80,7 @@ function getInstallationMenuItem(
 }
 
 export function buildMainMenuItems(
-    isClaudeInstalled: boolean,
+    isAntigravityInstalled: boolean,
     hasChanges: boolean,
     installation?: InstallationMetadata
 ): MainMenuEntry[] {
@@ -117,8 +117,8 @@ export function buildMainMenuItems(
         },
         {
             label: '🔧 Configure Status Line',
-            sublabel: isClaudeInstalled ? undefined : '(install first)',
-            disabled: !isClaudeInstalled,
+            sublabel: isAntigravityInstalled ? undefined : '(install first)',
+            disabled: !isAntigravityInstalled,
             value: 'configureStatusLine',
             description: 'Configure Antigravity CLI status line settings like refresh interval'
         },
@@ -134,7 +134,7 @@ export function buildMainMenuItems(
             description: 'Load configuration from a previously exported JSON file'
         },
         '-',
-        getInstallationMenuItem(isClaudeInstalled, installation)
+        getInstallationMenuItem(isAntigravityInstalled, installation)
     ];
 
     if (hasChanges) {
@@ -198,19 +198,19 @@ export function getMainMenuSelectionIndex(items: MainMenuEntry[], option: MainMe
 }
 
 export function getMainMenuInstallSelectionIndex(
-    isClaudeInstalled: boolean,
+    isAntigravityInstalled: boolean,
     installation?: InstallationMetadata
 ): number {
-    const option = isClaudeInstalled && usesManageInstallation(installation)
+    const option = isAntigravityInstalled && usesManageInstallation(installation)
         ? 'manageInstallation'
         : 'install';
 
-    return getMainMenuSelectionIndex(buildMainMenuItems(isClaudeInstalled, false, installation), option);
+    return getMainMenuSelectionIndex(buildMainMenuItems(isAntigravityInstalled, false, installation), option);
 }
 
 export const MainMenu: React.FC<MainMenuProps> = ({
     onSelect,
-    isClaudeInstalled,
+    isAntigravityInstalled,
     hasChanges,
     initialSelection = 0,
     powerlineFontStatus,
@@ -218,7 +218,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
     installation,
     previewIsTruncated
 }) => {
-    const menuItems = buildMainMenuItems(isClaudeInstalled, hasChanges, installation);
+    const menuItems = buildMainMenuItems(isAntigravityInstalled, hasChanges, installation);
 
     // Check if we should show the truncation warning
     const showTruncationWarning

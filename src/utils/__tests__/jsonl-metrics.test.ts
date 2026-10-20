@@ -123,7 +123,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('clamps malformed usage counts the way the live status path does', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-metrics-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-metrics-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'malformed-usage.jsonl');
         const usage = {
@@ -149,7 +149,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('formats session duration as <1m for sub-minute transcripts', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-metrics-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-metrics-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'short.jsonl');
         fs.writeFileSync(transcriptPath, [
@@ -163,7 +163,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('formats multi-hour session durations', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-metrics-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-metrics-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'long.jsonl');
         fs.writeFileSync(transcriptPath, [
@@ -177,12 +177,12 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('returns null for missing transcript files', async () => {
-        const duration = await getSessionDuration('/tmp/ccstatusline-jsonl-metrics-missing.jsonl');
+        const duration = await getSessionDuration('/tmp/agstatusline-jsonl-metrics-missing.jsonl');
         expect(duration).toBeNull();
     });
 
     it('aggregates token totals and computes context length from the latest main-chain non-error entry', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-metrics-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-metrics-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'tokens.jsonl');
 
@@ -235,7 +235,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('ignores invalid timestamps when choosing the latest context usage', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-metrics-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-metrics-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'invalid-timestamp.jsonl');
 
@@ -260,7 +260,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('skips intermediate streaming entries and only counts final entries per API call', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-metrics-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-metrics-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'streaming.jsonl');
 
@@ -328,7 +328,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('counts the latest in-progress streaming entry once when no finalized row exists yet', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-metrics-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-metrics-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'streaming-in-progress.jsonl');
 
@@ -375,7 +375,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('counts finalized streaming entries plus the latest unfinished one during live updates', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-metrics-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-metrics-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'streaming-live-update.jsonl');
 
@@ -430,7 +430,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('falls back to counting all entries when no stop_reason data is present', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-metrics-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-metrics-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'legacy.jsonl');
 
@@ -469,7 +469,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('reports post-compaction context length from the boundary marker before the next turn', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-metrics-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-metrics-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'compact-boundary.jsonl');
 
@@ -511,7 +511,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('uses the first turn after a compaction boundary instead of its postTokens estimate', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-metrics-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-metrics-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'compact-followup.jsonl');
 
@@ -557,7 +557,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('reports zero context length after a compaction marker that omits postTokens with no following turn', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-metrics-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-metrics-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'compact-no-post-tokens.jsonl');
 
@@ -597,7 +597,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('returns zeroed token metrics when file is missing', async () => {
-        const metrics = await getTokenMetrics('/tmp/ccstatusline-jsonl-metrics-missing.jsonl');
+        const metrics = await getTokenMetrics('/tmp/agstatusline-jsonl-metrics-missing.jsonl');
         expect(metrics).toEqual({
             inputTokens: 0,
             outputTokens: 0,
@@ -610,7 +610,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('aggregates token metrics across many usage records', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-metrics-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-metrics-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'streamed-tokens.jsonl');
 
@@ -647,7 +647,7 @@ describe('jsonl transcript metrics', () => {
     }, 30000);
 
     it('aggregates usage rows containing multi-megabyte assistant content', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-metrics-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-metrics-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'large-assistant-content.jsonl');
         const content = 'x'.repeat(2 * 1024 * 1024);
@@ -693,7 +693,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('collects configured transcript metrics in one combined analysis', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-metrics-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-metrics-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'combined.jsonl');
 
@@ -787,7 +787,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('calculates speed metrics from user-to-assistant processing windows', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-speed-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-speed-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'speed.jsonl');
 
@@ -832,7 +832,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('calculates windowed speed metrics from recent requests only', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-speed-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-speed-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'speed-window.jsonl');
 
@@ -881,7 +881,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('returns session and windowed speed metrics in one collection call', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-speed-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-speed-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'speed-window-collection.jsonl');
 
@@ -934,7 +934,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('ignores sidechain and API error entries in speed metrics', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-speed-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-speed-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'speed-filtering.jsonl');
 
@@ -977,7 +977,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('does not parse subagent transcripts unless includeSubagents is enabled', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-speed-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-speed-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'speed-main.jsonl');
         const subagentsDir = path.join(root, 'subagents');
@@ -1028,7 +1028,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('aggregates subagent speed metrics with merged active windows when enabled', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-speed-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-speed-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'speed-main-with-subagents.jsonl');
         const subagentsDir = path.join(root, 'subagents');
@@ -1096,7 +1096,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('applies window filtering to aggregated subagent speed metrics', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-speed-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-speed-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'speed-main-subagent-windowed.jsonl');
         const subagentsDir = path.join(root, 'subagents');
@@ -1149,7 +1149,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('includes only referenced subagent transcripts from the parent transcript', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-speed-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-speed-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'speed-main-referenced-subagents.jsonl');
         const subagentsDir = path.join(root, 'subagents');
@@ -1213,7 +1213,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('finds subagents in session-directory layout used by Claude transcripts', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-speed-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-speed-'));
         tempRoots.push(root);
         const sessionId = 'session-123';
         const transcriptPath = path.join(root, `${sessionId}.jsonl`);
@@ -1264,7 +1264,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('falls back to main transcript metrics when subagent folder cannot be listed', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-speed-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-speed-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'speed-main-discovery-failure.jsonl');
         const subagentsPath = path.join(root, 'subagents');
@@ -1301,7 +1301,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('ignores malformed subagent lines without failing', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-speed-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-speed-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'speed-main-malformed-subagent.jsonl');
         const subagentsDir = path.join(root, 'subagents');
@@ -1352,7 +1352,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('falls back to main transcript metrics when subagents directory is missing', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-speed-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-speed-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'speed-main-no-subagents.jsonl');
 
@@ -1390,7 +1390,7 @@ describe('jsonl transcript metrics', () => {
             return;
         }
 
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-speed-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-speed-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'speed-main-unreadable-subagent.jsonl');
         const subagentsDir = path.join(root, 'subagents');
@@ -1444,7 +1444,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('returns empty speed metrics when transcript path points to an unreadable directory', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-speed-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-speed-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'not-a-jsonl-file');
 
@@ -1462,7 +1462,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('counts assistant tokens without timestamps while keeping active duration at zero', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-speed-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-speed-'));
         tempRoots.push(root);
         const transcriptPath = path.join(root, 'speed-missing-timestamps.jsonl');
 
@@ -1490,7 +1490,7 @@ describe('jsonl transcript metrics', () => {
     });
 
     it('returns empty speed metrics when transcript is missing', async () => {
-        const metrics = await getSpeedMetrics('/tmp/ccstatusline-jsonl-speed-missing.jsonl');
+        const metrics = await getSpeedMetrics('/tmp/agstatusline-jsonl-speed-missing.jsonl');
         expect(metrics).toEqual({
             totalDurationMs: 0,
             inputTokens: 0,

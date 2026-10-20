@@ -86,7 +86,7 @@ function lastSpawnOptions(): SpawnOptions {
 }
 
 function useTempHome(): string {
-    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-cmd-home-'));
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-cmd-home-'));
     tempPaths.push(home);
     process.env.HOME = home;
     process.env.USERPROFILE = home;
@@ -95,7 +95,7 @@ function useTempHome(): string {
 }
 
 function useFixedCwd(): string {
-    const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-cmd-cwd-'));
+    const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-cmd-cwd-'));
     tempPaths.push(cwd);
     vi.spyOn(process, 'cwd').mockReturnValue(cwd);
     return cwd;

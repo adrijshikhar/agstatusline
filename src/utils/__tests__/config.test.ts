@@ -20,7 +20,7 @@ import {
 } from '../../types/Settings';
 import type { ImportValidationResult } from '../config';
 
-const MOCK_HOME_DIR = '/tmp/ccstatusline-config-test-home';
+const MOCK_HOME_DIR = '/tmp/agstatusline-config-test-home';
 const ORIGINAL_CLAUDE_CONFIG_DIR = process.env.CLAUDE_CONFIG_DIR;
 
 let loadSettings: () => Promise<Settings>;
@@ -39,7 +39,7 @@ let saveInstallationMetadata: (metadata: InstallationMetadata | undefined) => Pr
 let consoleErrorSpy: MockInstance<typeof console.error>;
 
 function getSettingsPaths(): { configDir: string; settingsPath: string; backupPath: string } {
-    const configDir = path.join(MOCK_HOME_DIR, '.config', 'ccstatusline');
+    const configDir = path.join(MOCK_HOME_DIR, '.config', 'agstatusline');
     return {
         configDir,
         settingsPath: path.join(configDir, 'settings.json'),
@@ -380,7 +380,7 @@ describe('config utilities', () => {
 
     it('saves through a symlinked settings file without replacing the link', async () => {
         const { settingsPath, configDir } = getSettingsPaths();
-        const targetDir = path.join(MOCK_HOME_DIR, 'dotfiles', 'ccstatusline');
+        const targetDir = path.join(MOCK_HOME_DIR, 'dotfiles', 'agstatusline');
         const targetPath = path.join(targetDir, 'settings.json');
         fs.mkdirSync(configDir, { recursive: true });
         fs.mkdirSync(targetDir, { recursive: true });

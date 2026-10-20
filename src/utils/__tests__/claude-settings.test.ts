@@ -59,9 +59,9 @@ function writeRawClaudeSettings(content: string): void {
 }
 
 beforeEach(() => {
-    testClaudeConfigDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-claude-settings-'));
+    testClaudeConfigDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-claude-settings-'));
     process.env.CLAUDE_CONFIG_DIR = testClaudeConfigDir;
-    config.initConfigPath(path.join(testClaudeConfigDir, 'ccstatusline-settings.json'));
+    config.initConfigPath(path.join(testClaudeConfigDir, 'agstatusline-settings.json'));
 });
 
 afterEach(() => {
@@ -267,7 +267,7 @@ describe('buildCommand via installStatusLine', () => {
     });
 
     it('should sync hooks on install when settings include hook-enabled widgets', async () => {
-        const configPath = path.join(testClaudeConfigDir, 'ccstatusline-settings.json');
+        const configPath = path.join(testClaudeConfigDir, 'agstatusline-settings.json');
         config.initConfigPath(configPath);
         const settingsWithSkills = {
             ...DEFAULT_SETTINGS,
@@ -283,14 +283,14 @@ describe('buildCommand via installStatusLine', () => {
         const hooks = (claudeSettings.hooks ?? {}) as Record<string, unknown[]>;
         expect(hooks.PreToolUse).toEqual([
             {
-                _tag: 'ccstatusline-managed',
+                _tag: 'agstatusline-managed',
                 matcher: 'Skill',
                 hooks: [{ type: 'command', command: `${installedCommand} --hook` }]
             }
         ]);
         expect(hooks.UserPromptSubmit).toEqual([
             {
-                _tag: 'ccstatusline-managed',
+                _tag: 'agstatusline-managed',
                 hooks: [{ type: 'command', command: `${installedCommand} --hook` }]
             }
         ]);
@@ -318,7 +318,7 @@ describe('buildCommand via installStatusLine', () => {
         const hooks = (claudeSettings.hooks ?? {}) as Record<string, unknown[]>;
         expect(hooks.PreToolUse).toEqual([
             {
-                _tag: 'ccstatusline-managed',
+                _tag: 'agstatusline-managed',
                 matcher: 'Skill',
                 hooks: [{ type: 'command', command: `${installedCommand} --hook` }]
             }
@@ -544,7 +544,7 @@ describe('backup and error handling behavior', () => {
             hooks: {
                 PreToolUse: [
                     {
-                        _tag: 'ccstatusline-managed',
+                        _tag: 'agstatusline-managed',
                         matcher: 'Skill',
                         hooks: [{ type: 'command', command: `${CCSTATUSLINE_COMMANDS.NPM} --hook` }]
                     },
@@ -555,7 +555,7 @@ describe('backup and error handling behavior', () => {
                 ],
                 UserPromptSubmit: [
                     {
-                        _tag: 'ccstatusline-managed',
+                        _tag: 'agstatusline-managed',
                         hooks: [{ type: 'command', command: `${CCSTATUSLINE_COMMANDS.NPM} --hook` }]
                     }
                 ]
@@ -695,7 +695,7 @@ describe('getVoiceConfig', () => {
     }
 
     beforeEach(() => {
-        testProjectDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-voice-project-'));
+        testProjectDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-voice-project-'));
     });
 
     afterEach(() => {
@@ -836,7 +836,7 @@ describe('getSandboxConfig', () => {
     }
 
     beforeEach(() => {
-        testSandboxProjectDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-sandbox-project-'));
+        testSandboxProjectDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-sandbox-project-'));
     });
 
     afterEach(() => {

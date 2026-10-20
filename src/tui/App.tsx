@@ -24,14 +24,12 @@ import {
     classifyInstallation,
     getAntigravitySettingsPath,
     getPackageCommandAvailability,
+    getRefreshInterval,
     installStatusLine,
     isStatusLineInstalled,
+    setRefreshInterval,
     uninstallStatusLine
 } from '../utils/antigravity-settings';
-import {
-    isClaudeCodeVersionAtLeast,
-    setRefreshInterval
-} from '../utils/claude-settings';
 import { cloneSettings } from '../utils/clone-settings';
 import {
     applyImport,
@@ -308,11 +306,11 @@ function clearInstallationMetadata(settings: Settings | null): Settings | null {
 }
 
 export function getCurrentInstallation(
-    isClaudeInstalled: boolean,
+    isAntigravityInstalled: boolean,
     existingStatusLine: string | null,
     settings: Settings
 ): InstallationMetadata {
-    return isClaudeInstalled && !existingStatusLine && settings.installation
+    return isAntigravityInstalled && !existingStatusLine && settings.installation
         ? settings.installation
         : classifyInstallation(existingStatusLine, settings.installation);
 }
@@ -469,7 +467,7 @@ export const App: React.FC = () => {
     const [selectedLine, setSelectedLine] = useState(0);
     const [menuSelections, setMenuSelections] = useState<Record<string, number>>({});
     const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState | null>(null);
-    const [isClaudeInstalled, setIsClaudeInstalled] = useState(false);
+    const [isAntigravityInstalled, setIsAntigravityInstalled] = useState(false);
     const [terminalWidth, setTerminalWidth] = useState(process.stdout.columns || 80);
     const [powerlineFontStatus, setPowerlineFontStatus] = useState<PowerlineFontStatus>({ installed: false });
     const [installingFonts, setInstallingFonts] = useState(false);
@@ -478,28 +476,33 @@ export const App: React.FC = () => {
     const [flashMessage, setFlashMessage] = useState<FlashMessage | null>(null);
     const [previewIsTruncated, setPreviewIsTruncated] = useState(false);
     const [currentRefreshInterval, setCurrentRefreshInterval] = useState<number | null>(null);
-    const [supportsRefreshInterval] = useState(() => isClaudeCodeVersionAtLeast('2.1.97'));
+    const [supportsRefreshInterval] = useState(false);
     const [commandAvailability] = useState(() => getPackageCommandAvailability());
     const [updateCheckerState, setUpdateCheckerState] = useState<UpdateCheckerState>({ status: 'checking' });
     const [flowNotice, setFlowNotice] = useState<FlowNoticeState | null>(null);
     const [globalPackageInstallations, setGlobalPackageInstallations] = useState<GlobalPackageInstallation[]>([]);
     const [updatesReturnScreen, setUpdatesReturnScreen] = useState<'main' | 'manageInstallation'>('main');
-    const [hasLoadedClaudeStatus, setHasLoadedClaudeStatus] = useState(false);
+    const [hasLoadedStatusLineStatus, setHasLoadedStatusLineStatus] = useState(false);
     const [hasLoadedInstalledState, setHasLoadedInstalledState] = useState(false);
     const [importValidation, setImportValidation] = useState<ImportValidationResult | null>(null);
 
     useEffect(() => {
-        void isStatusLineInstalled()
-            .then((status) => {
-                setIsClaudeInstalled(status.installed);
+        void Promise.all([
+            isStatusLineInstalled(),
+            getRefreshInterval()
+        ])
+            .then(([status, refreshInterval]) => {
+                setIsAntigravityInstalled(status.installed);
                 setExistingStatusLine(status.command ?? null);
+                setCurrentRefreshInterval(refreshInterval);
             })
             .catch(() => {
-                setIsClaudeInstalled(false);
+                setIsAntigravityInstalled(false);
                 setExistingStatusLine(null);
+                setCurrentRefreshInterval(null);
             })
             .finally(() => {
-                setHasLoadedClaudeStatus(true);
+                setHasLoadedStatusLineStatus(true);
                 setHasLoadedInstalledState(true);
             });
         void loadSettings().then((loadedSettings) => {
@@ -556,7 +559,7 @@ export const App: React.FC = () => {
         }
         // Global save shortcut
         if (key.ctrl && input === 's' && settings && screen !== 'confirm') {
-            const installation = getCurrentInstallation(isClaudeInstalled, existingStatusLine, settings);
+            const installation = getCurrentInstallation(isAntigravityInstalled, existingStatusLine, settings);
             const activeCommand = installation.method === 'pinned' || installation.method === 'self-managed'
                 ? inspectActiveGlobalCommand({ commandAvailability })
                 : null;
@@ -654,7 +657,7 @@ export const App: React.FC = () => {
                         setConfigLoadError(getConfigLoadError());
 
                         const installedStatus = await isStatusLineInstalled();
-                        setIsClaudeInstalled(installedStatus.installed);
+                        setIsAntigravityInstalled(installedStatus.installed);
                         setExistingStatusLine(installedStatus.command ?? finalCommand);
                         setSettings(prev => prev
                             ? { ...prev, installation: selection.metadata }
@@ -708,7 +711,7 @@ export const App: React.FC = () => {
     const handleUpdateCheck = useCallback(() => {
         setUpdateCheckerState({ status: 'checking' });
         const installation = settings
-            ? getCurrentInstallation(isClaudeInstalled, existingStatusLine, settings)
+            ? getCurrentInstallation(isAntigravityInstalled, existingStatusLine, settings)
             : classifyInstallation(existingStatusLine, undefined);
         const activeCommand = installation.method === 'pinned' || installation.method === 'self-managed'
             ? inspectActiveGlobalCommand({ commandAvailability })
@@ -724,7 +727,7 @@ export const App: React.FC = () => {
             installationMetadata: effectiveUpdateInstallation,
             commandAvailability
         }).then(setUpdateCheckerState);
-    }, [commandAvailability, existingStatusLine, isClaudeInstalled, settings]);
+    }, [commandAvailability, existingStatusLine, isAntigravityInstalled, settings]);
 
     const handleRunUpdateAction = useCallback((action: UpdateAction) => {
         setConfirmDialog({
@@ -831,12 +834,12 @@ export const App: React.FC = () => {
         setScreen('main');
     }, [importValidation, settings]);
 
-    if (!settings || !hasLoadedClaudeStatus || !hasLoadedInstalledState) {
+    if (!settings || !hasLoadedStatusLineStatus || !hasLoadedInstalledState) {
         return <Text>Loading settings...</Text>;
     }
 
     const runningVersion = getPackageVersion();
-    const currentInstallation = getCurrentInstallation(isClaudeInstalled, existingStatusLine, settings);
+    const currentInstallation = getCurrentInstallation(isAntigravityInstalled, existingStatusLine, settings);
     const activeGlobalCommand = currentInstallation.method === 'pinned' || currentInstallation.method === 'self-managed'
         ? inspectActiveGlobalCommand({ commandAvailability })
         : null;
@@ -909,7 +912,7 @@ export const App: React.FC = () => {
                         await runGlobalPackageUninstall(packageManager);
                     }
 
-                    setIsClaudeInstalled(false);
+                    setIsAntigravityInstalled(false);
                     setExistingStatusLine(null);
                     setCurrentRefreshInterval(null);
                     setSettings(clearInstallationMetadata);
@@ -927,7 +930,7 @@ export const App: React.FC = () => {
                     setScreen('main');
                 } catch {
                     if (removedAntigravitySettings) {
-                        setIsClaudeInstalled(false);
+                        setIsAntigravityInstalled(false);
                         setExistingStatusLine(null);
                         setCurrentRefreshInterval(null);
                         setSettings(clearInstallationMetadata);
@@ -957,7 +960,7 @@ export const App: React.FC = () => {
     };
 
     const handleInstallUninstall = () => {
-        if (isClaudeInstalled) {
+        if (isAntigravityInstalled) {
             handleUninstallSelection({ packageManagers: [] }, 'main');
         } else {
             setScreen('install');
@@ -1161,7 +1164,7 @@ export const App: React.FC = () => {
 
                             void handleMainMenuSelect(value);
                         }}
-                        isClaudeInstalled={isClaudeInstalled}
+                        isAntigravityInstalled={isAntigravityInstalled}
                         hasChanges={hasChanges}
                         initialSelection={menuSelections.main}
                         powerlineFontStatus={powerlineFontStatus}

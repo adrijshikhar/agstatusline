@@ -39,7 +39,7 @@ function render(transcriptPath: string | undefined, fileContent: string | null, 
 
 describe('SessionNameWidget', () => {
     beforeEach(() => {
-        tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-session-name-'));
+        tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-session-name-'));
     });
 
     afterEach(() => {

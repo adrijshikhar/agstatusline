@@ -294,6 +294,37 @@ export async function installStatusLine(options?: InstallStatusLineOptions): Pro
     await saveAntigravitySettings(settings, targetFile);
 }
 
+export async function getExistingStatusLine(settingsPath?: string): Promise<string | null> {
+    const status = await isStatusLineInstalled(settingsPath);
+    return status.command ?? null;
+}
+
+export async function getRefreshInterval(settingsPath?: string): Promise<number | null> {
+    try {
+        const targetFile = settingsPath ?? getAntigravitySettingsPath();
+        const settings = await loadAntigravitySettings(targetFile);
+        const sl = settings.statusLine as Record<string, unknown> | undefined;
+        return typeof sl?.refreshInterval === 'number' ? sl.refreshInterval : null;
+    } catch {
+        return null;
+    }
+}
+
+export async function setRefreshInterval(interval: number | null, settingsPath?: string): Promise<void> {
+    const targetFile = settingsPath ?? getAntigravitySettingsPath();
+    const settings = await loadAntigravitySettings(targetFile);
+    if (!settings.statusLine || typeof settings.statusLine !== 'object' || Array.isArray(settings.statusLine)) {
+        return;
+    }
+    const sl = settings.statusLine as Record<string, unknown>;
+    if (interval === null) {
+        delete sl.refreshInterval;
+    } else {
+        sl.refreshInterval = interval;
+    }
+    await saveAntigravitySettings(settings, targetFile);
+}
+
 export async function uninstallStatusLine(settingsPath?: string): Promise<void> {
     const targetFile = settingsPath ?? getAntigravitySettingsPath();
     let content: string;

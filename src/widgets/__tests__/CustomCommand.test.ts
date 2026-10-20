@@ -53,7 +53,7 @@ function echoStdin(): void {
 }
 
 function useTempHome(): void {
-    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-widget-home-'));
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-widget-home-'));
     tempPaths.push(home);
     process.env.HOME = home;
     process.env.USERPROFILE = home;

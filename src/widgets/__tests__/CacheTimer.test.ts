@@ -30,7 +30,7 @@ describe('CacheTimer widget', () => {
     let fileCounter = 0;
 
     beforeEach(() => {
-        tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-cache-timer-'));
+        tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-cache-timer-'));
     });
 
     afterEach(() => {

@@ -10,59 +10,59 @@ import {
     it
 } from 'vitest';
 
-import { saveClaudeSettings } from '../../utils/claude-settings';
+import { saveAntigravitySettings } from '../../utils/antigravity-settings';
 import { loadClaudeStatusLineState } from '../claude-status';
 
-const ORIGINAL_CLAUDE_CONFIG_DIR = process.env.CLAUDE_CONFIG_DIR;
-let testClaudeConfigDir = '';
+const ORIGINAL_ANTIGRAVITY_CONFIG_DIR = process.env.ANTIGRAVITY_CONFIG_DIR;
+let testAntigravityConfigDir = '';
 
 beforeEach(() => {
-    testClaudeConfigDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-claude-status-'));
-    process.env.CLAUDE_CONFIG_DIR = testClaudeConfigDir;
+    testAntigravityConfigDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-status-'));
+    process.env.ANTIGRAVITY_CONFIG_DIR = testAntigravityConfigDir;
 });
 
 afterEach(() => {
-    if (testClaudeConfigDir) {
-        fs.rmSync(testClaudeConfigDir, { recursive: true, force: true });
+    if (testAntigravityConfigDir) {
+        fs.rmSync(testAntigravityConfigDir, { recursive: true, force: true });
     }
 });
 
 afterAll(() => {
-    if (ORIGINAL_CLAUDE_CONFIG_DIR === undefined) {
-        delete process.env.CLAUDE_CONFIG_DIR;
+    if (ORIGINAL_ANTIGRAVITY_CONFIG_DIR === undefined) {
+        delete process.env.ANTIGRAVITY_CONFIG_DIR;
     } else {
-        process.env.CLAUDE_CONFIG_DIR = ORIGINAL_CLAUDE_CONFIG_DIR;
+        process.env.ANTIGRAVITY_CONFIG_DIR = ORIGINAL_ANTIGRAVITY_CONFIG_DIR;
     }
 });
 
 describe('loadClaudeStatusLineState', () => {
-    it('loads both the installed command and refresh interval from Claude settings', async () => {
-        await saveClaudeSettings({
+    it('loads both the installed command and refresh interval from Antigravity settings', async () => {
+        await saveAntigravitySettings({
             statusLine: {
                 type: 'command',
-                command: 'npx -y ccstatusline@latest',
+                command: 'npx -y agstatusline@latest',
                 padding: 0,
                 refreshInterval: 10
             }
         });
 
         await expect(loadClaudeStatusLineState()).resolves.toEqual({
-            existingStatusLine: 'npx -y ccstatusline@latest',
+            existingStatusLine: 'npx -y agstatusline@latest',
             refreshInterval: 10
         });
     });
 
-    it('returns null refreshInterval when Claude settings do not define one', async () => {
-        await saveClaudeSettings({
+    it('returns null refreshInterval when Antigravity settings do not define one', async () => {
+        await saveAntigravitySettings({
             statusLine: {
                 type: 'command',
-                command: 'npx -y ccstatusline@latest',
+                command: 'npx -y agstatusline@latest',
                 padding: 0
             }
         });
 
         await expect(loadClaudeStatusLineState()).resolves.toEqual({
-            existingStatusLine: 'npx -y ccstatusline@latest',
+            existingStatusLine: 'npx -y agstatusline@latest',
             refreshInterval: null
         });
     });

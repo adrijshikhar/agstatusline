@@ -132,7 +132,7 @@ function createHarness(): PrCacheHarness {
         },
         now: () => now,
         readFileSync: (((filePath: unknown) => cacheFiles.get(String(filePath))?.content ?? '') as unknown) as GitReviewCacheDeps['readFileSync'],
-        getScriptPath: () => '/app/ccstatusline.js',
+        getScriptPath: () => '/app/agstatusline.js',
         spawn: ((command, args) => {
             spawnCalls.push({
                 args: Array.isArray(args) ? args.map(arg => String(arg)) : [],
@@ -281,7 +281,7 @@ describe('git-review-cache', () => {
         expect(harness.spawnCalls).toHaveLength(1);
         expect(harness.spawnCalls[0]?.command).toBe('/usr/bin/node');
         expect(harness.spawnCalls[0]?.args.slice(0, 4)).toEqual([
-            '/app/ccstatusline.js',
+            '/app/agstatusline.js',
             '--internal-refresh-git-review-cache',
             '/tmp/repo',
             'metadata'

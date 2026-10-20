@@ -100,7 +100,7 @@ function render(options: {
 describe('ThinkingEffortWidget', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-thinking-effort-'));
+        tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-thinking-effort-'));
         mockedLoadSettings.mockReturnValue({});
         mockedLoadAgSettings.mockReturnValue({});
     });

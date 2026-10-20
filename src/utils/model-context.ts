@@ -101,7 +101,7 @@ export function getContextConfig(modelIdentifier?: string, contextWindowSize?: n
 
     // Last-resort fallback when neither the live status window size nor a
     // model-name hint is available. Defaults to 200k, overridable via
-    // CCSTATUSLINE_CONTEXT_SIZE_FALLBACK.
+    // AGSTATUSLINE_CONTEXT_SIZE_FALLBACK (or CCSTATUSLINE_CONTEXT_SIZE_FALLBACK).
     const fallbackWindowSize = getFallbackContextWindowSize();
     const defaultConfig = {
         maxTokens: fallbackWindowSize,

@@ -42,7 +42,7 @@ const ORIGINAL_USERPROFILE = process.env.USERPROFILE;
 const tempPaths: string[] = [];
 
 function useTempHome(): string {
-    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-git-home-'));
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-git-home-'));
     tempPaths.push(home);
     process.env.HOME = home;
     process.env.USERPROFILE = home;
@@ -51,7 +51,7 @@ function useTempHome(): string {
 }
 
 function createGitRepo(): { root: string; headPath: string; indexPath: string } {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-git-repo-'));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-git-repo-'));
     tempPaths.push(root);
     const gitDir = path.join(root, '.git');
     fs.mkdirSync(gitDir, { recursive: true });

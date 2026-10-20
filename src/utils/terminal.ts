@@ -52,7 +52,7 @@ function probeTerminalWidth(): number | null {
         return nativeWidth;
     }
 
-    // Claude Code can spawn ccstatusline with piped stdio, leaving the immediate
+    // Antigravity CLI can spawn agstatusline with piped stdio, leaving the immediate
     // parent process without a controlling TTY. Walk up a few ancestors until we
     // find the shell process that owns the real PTY.
     let pid = process.pid;

@@ -53,7 +53,7 @@ interface ProbeOptions {
 }
 
 function createProbeHarness() {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-usage-test-'));
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-usage-test-'));
     const probeScriptPath = path.join(tempRoot, 'probe-usage.mjs');
     const usageModulePath = fileURLToPath(new URL('../usage.ts', import.meta.url));
 
@@ -142,8 +142,8 @@ https.request = (...args) => {
 
 const { fetchUsageData } = await import(${JSON.stringify(usageModulePath)});
 
-const lockFile = path.join(os.homedir(), '.cache', 'ccstatusline', 'usage.lock');
-const cacheFile = path.join(os.homedir(), '.cache', 'ccstatusline', 'usage.json');
+const lockFile = path.join(os.homedir(), '.cache', 'agstatusline', 'usage.lock');
+const cacheFile = path.join(os.homedir(), '.cache', 'agstatusline', 'usage.json');
 const nowMs = Number(process.env.TEST_NOW_MS || Date.now());
 const requiredFields = JSON.parse(process.env.TEST_REQUIRED_FIELDS_JSON || '[]');
 Date.now = () => nowMs;
@@ -207,7 +207,7 @@ process.stdout.write(JSON.stringify({
             HOME: options.home,
             // os.homedir() prefers USERPROFILE on Windows; inheriting the
             // real one lets the probe escape into the user's actual home
-            // and read/write the live ~/.cache/ccstatusline
+            // and read/write the live ~/.cache/agstatusline
             USERPROFILE: options.home,
             PATH: options.pathDir ?? '/nonexistent',
             TEST_REQUIRED_FIELDS_JSON: JSON.stringify(options.requiredFields ?? []),
@@ -238,7 +238,7 @@ process.stdout.write(JSON.stringify({
         const result = JSON.parse(output) as UsageProbeResult;
 
         // A probe resolving a different home has escaped its sandbox and would
-        // read or write the real user's ~/.cache/ccstatusline
+        // read or write the real user's ~/.cache/agstatusline
         expect(result.homedir).toBe(options.home);
 
         return result;
@@ -267,7 +267,7 @@ function writeUsageCredentials(claudeConfig: string, claudeAiOauth: { accessToke
 }
 
 function seedUsageCache(home: string, contents: Record<string, unknown>): { cacheFile: string; mtimeMs: number } {
-    const cacheDir = path.join(home, '.cache', 'ccstatusline');
+    const cacheDir = path.join(home, '.cache', 'agstatusline');
     fs.mkdirSync(cacheDir, { recursive: true });
     const cacheFile = path.join(cacheDir, 'usage.json');
     fs.writeFileSync(cacheFile, JSON.stringify(contents));
@@ -716,7 +716,7 @@ describe('fetchUsageData error handling', () => {
             // CACHE_MAX_AGE. This exercises the file-cache fast path a real later
             // render takes, rather than depending on a lingering lock to suppress
             // the refetch.
-            const cacheMtimeMs = fs.statSync(path.join(home.home, '.cache', 'ccstatusline', 'usage.json')).mtimeMs;
+            const cacheMtimeMs = fs.statSync(path.join(home.home, '.cache', 'agstatusline', 'usage.json')).mtimeMs;
             const cachedResult = harness.runProbe({
                 claudeConfigDir: home.claudeConfig,
                 home: home.home,
@@ -759,7 +759,7 @@ describe('fetchUsageData error handling', () => {
             expect(result.second).toEqual(result.first);
             expect(result.requestCount).toBe(1);
 
-            const cacheMtimeMs = fs.statSync(path.join(home.home, '.cache', 'ccstatusline', 'usage.json')).mtimeMs;
+            const cacheMtimeMs = fs.statSync(path.join(home.home, '.cache', 'agstatusline', 'usage.json')).mtimeMs;
             const cachedResult = harness.runProbe({
                 claudeConfigDir: home.claudeConfig,
                 home: home.home,
@@ -803,7 +803,7 @@ describe('fetchUsageData error handling', () => {
             expect(result.second).toEqual(result.first);
             expect(result.requestCount).toBe(1);
 
-            const cacheMtimeMs = fs.statSync(path.join(home.home, '.cache', 'ccstatusline', 'usage.json')).mtimeMs;
+            const cacheMtimeMs = fs.statSync(path.join(home.home, '.cache', 'agstatusline', 'usage.json')).mtimeMs;
             const cachedResult = harness.runProbe({
                 claudeConfigDir: home.claudeConfig,
                 home: home.home,
@@ -846,7 +846,7 @@ describe('fetchUsageData error handling', () => {
             expect(result.second).toEqual(result.first);
             expect(result.requestCount).toBe(1);
 
-            const cacheMtimeMs = fs.statSync(path.join(home.home, '.cache', 'ccstatusline', 'usage.json')).mtimeMs;
+            const cacheMtimeMs = fs.statSync(path.join(home.home, '.cache', 'agstatusline', 'usage.json')).mtimeMs;
             const cachedResult = harness.runProbe({
                 claudeConfigDir: home.claudeConfig,
                 home: home.home,
@@ -896,7 +896,7 @@ describe('fetchUsageData error handling', () => {
 
         try {
             const home = harness.createTokenHome('lock-beyond-horizon');
-            const cacheDir = path.join(home.home, '.cache', 'ccstatusline');
+            const cacheDir = path.join(home.home, '.cache', 'agstatusline');
             fs.mkdirSync(cacheDir, { recursive: true });
             fs.writeFileSync(path.join(cacheDir, 'usage.lock'), JSON.stringify({
                 blockedUntil: Math.floor(nowMs / 1000) + (10 * 365 * 24 * 60 * 60),
@@ -933,7 +933,7 @@ describe('fetchUsageData error handling', () => {
 
         try {
             const home = harness.createTokenHome('lock-within-horizon');
-            const cacheDir = path.join(home.home, '.cache', 'ccstatusline');
+            const cacheDir = path.join(home.home, '.cache', 'agstatusline');
             fs.mkdirSync(cacheDir, { recursive: true });
             fs.writeFileSync(path.join(cacheDir, 'usage.lock'), JSON.stringify({
                 blockedUntil: Math.floor(nowMs / 1000) + (12 * 60 * 60),
@@ -994,7 +994,7 @@ describe('fetchUsageData error handling', () => {
 
         try {
             const home = harness.createTokenHome('account-switch');
-            const cacheDir = path.join(home.home, '.cache', 'ccstatusline');
+            const cacheDir = path.join(home.home, '.cache', 'agstatusline');
             fs.mkdirSync(cacheDir, { recursive: true });
             const cacheFile = path.join(cacheDir, 'usage.json');
             // A complete cache written under a different account's token.
@@ -1025,7 +1025,7 @@ describe('fetchUsageData error handling', () => {
 
         try {
             const home = harness.createTokenHome('account-switch-active-lock');
-            const cacheDir = path.join(home.home, '.cache', 'ccstatusline');
+            const cacheDir = path.join(home.home, '.cache', 'agstatusline');
             fs.mkdirSync(cacheDir, { recursive: true });
             const cacheFile = path.join(cacheDir, 'usage.json');
             const lockFile = path.join(cacheDir, 'usage.lock');
@@ -1060,7 +1060,7 @@ describe('fetchUsageData error handling', () => {
 
         try {
             const home = harness.createTokenHome('account-switch-rate-limit');
-            const cacheDir = path.join(home.home, '.cache', 'ccstatusline');
+            const cacheDir = path.join(home.home, '.cache', 'agstatusline');
             fs.mkdirSync(cacheDir, { recursive: true });
             const cacheFile = path.join(cacheDir, 'usage.json');
             fs.writeFileSync(cacheFile, JSON.stringify({ sessionUsage: 5, tokenHash: 'deadbeefdeadbeef' }));
@@ -1096,7 +1096,7 @@ describe('fetchUsageData error handling', () => {
 
         try {
             const home = harness.createTokenHome('account-same');
-            const cacheDir = path.join(home.home, '.cache', 'ccstatusline');
+            const cacheDir = path.join(home.home, '.cache', 'agstatusline');
             fs.mkdirSync(cacheDir, { recursive: true });
             const cacheFile = path.join(cacheDir, 'usage.json');
             const matchingHash = createHash('sha256').update('test-token').digest('hex').slice(0, 16);
@@ -1136,7 +1136,7 @@ describe('fetchUsageData error handling', () => {
             const { cacheFile, mtimeMs } = seedUsageCache(home.home, { sessionUsage: 5, tokenHash: legacyHash });
             const cacheContents = fs.readFileSync(cacheFile, 'utf8');
             const probeNowMs = mtimeMs + cacheAgeMs;
-            const lockFile = path.join(home.home, '.cache', 'ccstatusline', 'usage.lock');
+            const lockFile = path.join(home.home, '.cache', 'agstatusline', 'usage.lock');
             const lockContents = JSON.stringify({
                 blockedUntil: Math.floor(probeNowMs / 1000) + 3600,
                 error: 'rate-limited'
@@ -1179,7 +1179,7 @@ describe('fetchUsageData error handling', () => {
                 : createHash('sha256').update(cachedToken).digest('hex').slice(0, 16);
             const { mtimeMs } = seedUsageCache(home.home, { sessionUsage: 5, tokenHash });
             const probeNowMs = mtimeMs + 5000;
-            fs.writeFileSync(path.join(home.home, '.cache', 'ccstatusline', 'usage.lock'), JSON.stringify({
+            fs.writeFileSync(path.join(home.home, '.cache', 'agstatusline', 'usage.lock'), JSON.stringify({
                 blockedUntil: Math.floor(probeNowMs / 1000) + 3600,
                 error: 'rate-limited'
             }));
@@ -1242,7 +1242,7 @@ describe('fetchUsageData error handling', () => {
             const tokenHash = createHash('sha256').update(cachedToken).digest('hex').slice(0, 16);
             const { mtimeMs } = seedUsageCache(home.home, { sessionUsage: 5, tokenHash });
             const probeNowMs = mtimeMs + 5000;
-            fs.writeFileSync(path.join(home.home, '.cache', 'ccstatusline', 'usage.lock'), JSON.stringify({
+            fs.writeFileSync(path.join(home.home, '.cache', 'agstatusline', 'usage.lock'), JSON.stringify({
                 blockedUntil: Math.floor(probeNowMs / 1000) + 3600,
                 error: 'rate-limited'
             }));
@@ -1312,7 +1312,7 @@ describe('fetchUsageData error handling', () => {
             // so the stale-cache fallback is the only thing standing between the
             // widgets and error text for the rest of the window.
             const backedOffNowMs = mtimeMs + 200000;
-            fs.writeFileSync(path.join(home.home, '.cache', 'ccstatusline', 'usage.lock'), JSON.stringify({
+            fs.writeFileSync(path.join(home.home, '.cache', 'agstatusline', 'usage.lock'), JSON.stringify({
                 blockedUntil: Math.floor(backedOffNowMs / 1000) + 3600,
                 error: 'rate-limited'
             }));
@@ -1396,7 +1396,7 @@ describe('fetchUsageData error handling', () => {
             // CACHE_MAX_AGE. This exercises the file-cache fast path a real later
             // render takes, rather than depending on a lingering lock to suppress
             // the refetch.
-            const cacheMtimeMs = fs.statSync(path.join(home.home, '.cache', 'ccstatusline', 'usage.json')).mtimeMs;
+            const cacheMtimeMs = fs.statSync(path.join(home.home, '.cache', 'agstatusline', 'usage.json')).mtimeMs;
             const cachedResult = harness.runProbe({
                 claudeConfigDir: home.claudeConfig,
                 home: home.home,
@@ -1448,7 +1448,7 @@ describe('fetchUsageData error handling', () => {
             // CACHE_MAX_AGE. This exercises the file-cache fast path a real later
             // render takes, rather than depending on a lingering lock to suppress
             // the refetch.
-            const cacheMtimeMs = fs.statSync(path.join(home.home, '.cache', 'ccstatusline', 'usage.json')).mtimeMs;
+            const cacheMtimeMs = fs.statSync(path.join(home.home, '.cache', 'agstatusline', 'usage.json')).mtimeMs;
             const cachedResult = harness.runProbe({
                 claudeConfigDir: home.claudeConfig,
                 home: home.home,
@@ -1709,7 +1709,7 @@ describe('fetchUsageData error handling', () => {
 
         try {
             const home = harness.createTokenHome('legacy-lock');
-            const lockDir = path.join(home.home, '.cache', 'ccstatusline');
+            const lockDir = path.join(home.home, '.cache', 'agstatusline');
             const lockFile = path.join(lockDir, 'usage.lock');
 
             fs.mkdirSync(lockDir, { recursive: true });

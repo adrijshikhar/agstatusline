@@ -153,7 +153,7 @@ async function writeDefaultSettings(paths: SettingsPaths): Promise<Settings> {
 }
 
 /**
- * Load ccstatusline settings from disk.
+ * Load agstatusline settings from disk.
  *
  * Recovery contract: if the file cannot be read or fails validation, loadSettings
  * NEVER overwrites it — it returns built-in defaults in memory, records the reason

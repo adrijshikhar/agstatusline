@@ -28,11 +28,11 @@ import {
 import { buildManageInstallationItems } from '../components/ManageInstallationMenu';
 
 function getMenuValues(
-    isClaudeInstalled: boolean,
+    isAntigravityInstalled: boolean,
     hasChanges: boolean,
     installation?: InstallationMetadata
 ): string[] {
-    return buildMainMenuItems(isClaudeInstalled, hasChanges, installation)
+    return buildMainMenuItems(isAntigravityInstalled, hasChanges, installation)
         .map(item => item === '-' ? '-' : item.value);
 }
 
@@ -87,7 +87,7 @@ describe('TUI config imports', () => {
 });
 
 describe('Pinned version mismatch guard', () => {
-    it('uses saved pinned metadata while Claude status line is still loading', () => {
+    it('uses saved pinned metadata while Antigravity status line is still loading', () => {
         const installation: InstallationMetadata = {
             method: 'pinned',
             installedVersion: '2.2.13'

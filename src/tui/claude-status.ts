@@ -1,7 +1,7 @@
 import {
     getExistingStatusLine,
     getRefreshInterval
-} from '../utils/claude-settings';
+} from '../utils/antigravity-settings';
 
 export interface ClaudeStatusLineState {
     existingStatusLine: string | null;
