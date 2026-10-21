@@ -49,7 +49,7 @@ export function getBlockCachePath(configDir = getClaudeConfigDir()): string {
     return path.join(
         os.homedir(),
         '.cache',
-        'ccstatusline',
+        'agstatusline',
         `block-cache-${configHash}.json`
     );
 }

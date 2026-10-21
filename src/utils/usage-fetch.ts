@@ -8,6 +8,7 @@ import * as path from 'path';
 import { z } from 'zod';
 
 import { getClaudeConfigDir } from './claude-settings';
+import { isExcludedFromProxy } from './no-proxy';
 import type {
     UsageData,
     UsageDataField,
@@ -20,7 +21,7 @@ import {
 } from './usage-types';
 
 // Cache configuration
-const CACHE_DIR = path.join(os.homedir(), '.cache', 'ccstatusline');
+const CACHE_DIR = path.join(os.homedir(), '.cache', 'agstatusline');
 const CACHE_FILE = path.join(CACHE_DIR, 'usage.json');
 const LOCK_FILE = path.join(CACHE_DIR, 'usage.lock');
 const CACHE_MAX_AGE = 180; // seconds
@@ -712,7 +713,7 @@ const USAGE_API_TIMEOUT_MS = 5000;
 
 function getUsageApiProxyUrl(): string | null {
     const proxyUrl = process.env.HTTPS_PROXY?.trim();
-    if (proxyUrl === '') {
+    if (proxyUrl === '' || isExcludedFromProxy(USAGE_API_HOST)) {
         return null;
     }
 

@@ -4,7 +4,38 @@ import {
     it
 } from 'vitest';
 
-import { shouldInsertInput } from '../input-guards';
+import {
+    getPlainInput,
+    isPlainKey,
+    shouldInsertInput
+} from '../input-guards';
+
+describe('isPlainKey', () => {
+    it('returns true when neither ctrl nor meta is pressed', () => {
+        expect(isPlainKey({})).toBe(true);
+        expect(isPlainKey({ shift: true })).toBe(true);
+    });
+
+    it('returns false when ctrl or meta is pressed', () => {
+        expect(isPlainKey({ ctrl: true })).toBe(false);
+        expect(isPlainKey({ meta: true })).toBe(false);
+        expect(isPlainKey({ ctrl: true, meta: true })).toBe(false);
+    });
+});
+
+describe('getPlainInput', () => {
+    it('passes bare keypresses through, shifted ones included', () => {
+        expect(getPlainInput('d', {})).toBe('d');
+        expect(getPlainInput('D', { shift: true })).toBe('D');
+        expect(getPlainInput(' ', {})).toBe(' ');
+    });
+
+    it('hides the letter while ctrl or alt/option (meta) is held', () => {
+        expect(getPlainInput('d', { ctrl: true })).toBe('');
+        expect(getPlainInput('d', { meta: true })).toBe('');
+        expect(getPlainInput('d', { ctrl: true, meta: true })).toBe('');
+    });
+});
 
 describe('shouldInsertInput', () => {
     it('allows regular printable input without modifiers', () => {

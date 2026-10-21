@@ -7,17 +7,22 @@ import React, { useState } from 'react';
 
 import type { InstallationMetadata } from '../../types/Settings';
 import {
-    CCSTATUSLINE_COMMANDS,
+    AGSTATUSLINE_COMMANDS,
     PINNED_INSTALL_COMMANDS,
-    getClaudeSettingsPath,
+    getAntigravitySettingsPath,
     type PackageCommandAvailability,
     type StatusLineCommandMode
-} from '../../utils/claude-settings';
+} from '../../utils/antigravity-settings';
 
 import {
     List,
     type ListEntry
 } from './List';
+
+export {
+    AGSTATUSLINE_COMMANDS,
+    PINNED_INSTALL_COMMANDS
+};
 
 export type InstallUpdateStyle = 'auto-update' | 'pinned';
 export type InstallPackageManager = 'npm' | 'bun';
@@ -45,7 +50,7 @@ type InstallStep = 'style' | 'manager';
 const AUTO_UPDATE_DESCRIPTION = 'Runs `@latest` through npx/bunx. Stays current automatically, with a small startup cost when the package runner checks or resolves the package. Because it follows the latest published package, pinned install is available if you prefer explicit updates.';
 
 function getPinnedDescription(currentVersion: string): string {
-    return `Installs \`ccstatusline@${currentVersion}\` globally and Claude Code runs \`ccstatusline\`. Fast on each render because Claude Code runs the installed ccstatusline binary directly. The version changes only when you update the global install.`;
+    return `Installs \`agstatusline@${currentVersion}\` globally and Antigravity CLI runs \`agstatusline\`. Fast on each render because Antigravity CLI runs the installed agstatusline binary directly. The version changes only when you update the global install.`;
 }
 
 function getStyleItems(currentVersion: string): ListEntry<InstallUpdateStyle>[] {
@@ -71,13 +76,13 @@ function getManagerItems(
     if (updateStyle === 'auto-update') {
         return [
             {
-                label: CCSTATUSLINE_COMMANDS.AUTO_NPX,
+                label: AGSTATUSLINE_COMMANDS.AUTO_NPX,
                 value: 'npm',
                 disabled: !commandAvailability.npx,
                 sublabel: commandAvailability.npx ? undefined : '(npx not installed)'
             },
             {
-                label: CCSTATUSLINE_COMMANDS.AUTO_BUNX,
+                label: AGSTATUSLINE_COMMANDS.AUTO_BUNX,
                 value: 'bun',
                 disabled: !commandAvailability.bunx,
                 sublabel: commandAvailability.bunx ? undefined : '(bunx not installed)'
@@ -112,8 +117,8 @@ function buildSelection(
             packageManager,
             commandMode: packageManager === 'bun' ? 'auto-bunx' : 'auto-npx',
             displayedCommand: packageManager === 'bun'
-                ? CCSTATUSLINE_COMMANDS.AUTO_BUNX
-                : CCSTATUSLINE_COMMANDS.AUTO_NPX,
+                ? AGSTATUSLINE_COMMANDS.AUTO_BUNX
+                : AGSTATUSLINE_COMMANDS.AUTO_NPX,
             metadata: {
                 method: 'auto-update',
                 packageManager
@@ -162,7 +167,7 @@ export const InstallMenu: React.FC<InstallMenuProps> = ({
 
     return (
         <Box flexDirection='column'>
-            <Text bold>Install ccstatusline to Claude Code</Text>
+            <Text bold>Install agstatusline to Antigravity CLI</Text>
 
             {existingStatusLine && (
                 <Box marginBottom={1}>
@@ -227,7 +232,7 @@ export const InstallMenu: React.FC<InstallMenuProps> = ({
                 <Text dimColor>
                     The selected command will be written to
                     {' '}
-                    {getClaudeSettingsPath()}
+                    {getAntigravitySettingsPath()}
                 </Text>
             </Box>
 

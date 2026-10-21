@@ -34,11 +34,11 @@ describe('global package manager inspection', () => {
 
     it('detects npm installs through WSL path variants', () => {
         mockExecFileSync({
-            'which -a ccstatusline': '',
+            'which -a agstatusline': '',
             'npm prefix -g': 'C:\\Users\\Alice\\AppData\\Roaming\\npm\n'
         });
         vi.spyOn(fs, 'existsSync').mockImplementation(filePath => (
-            filePath === '/mnt/c/Users/Alice/AppData/Roaming/npm/ccstatusline'
+            filePath === '/mnt/c/Users/Alice/AppData/Roaming/npm/agstatusline'
         ));
 
         const installations = inspectGlobalPackageInstallations({
@@ -67,15 +67,15 @@ describe('global package manager inspection', () => {
 
     it('identifies the active package manager and version from the first PATH match', () => {
         mockExecFileSync({
-            'which -a ccstatusline': '/Users/alice/.bun/bin/ccstatusline\n/Users/alice/.nvm/versions/node/v24.9.0/bin/ccstatusline\n',
+            'which -a agstatusline': '/Users/alice/.bun/bin/agstatusline\n/Users/alice/.nvm/versions/node/v24.9.0/bin/agstatusline\n',
             'npm prefix -g': '/Users/alice/.nvm/versions/node/v24.9.0\n',
             'bun pm bin -g': '/Users/alice/.bun/bin\n'
         });
         vi.spyOn(fs, 'existsSync').mockImplementation(filePath => (
-            filePath === '/Users/alice/.bun/install/global/node_modules/ccstatusline/package.json'
+            filePath === '/Users/alice/.bun/install/global/node_modules/agstatusline/package.json'
         ));
         vi.spyOn(fs, 'readFileSync').mockImplementation((filePath) => {
-            if (filePath === '/Users/alice/.bun/install/global/node_modules/ccstatusline/package.json') {
+            if (filePath === '/Users/alice/.bun/install/global/node_modules/agstatusline/package.json') {
                 return '{"version":"2.2.13"}';
             }
 
@@ -92,28 +92,28 @@ describe('global package manager inspection', () => {
 
         expect(activeCommand).toEqual({
             packageManager: 'bun',
-            resolvedPath: '/Users/alice/.bun/bin/ccstatusline',
+            resolvedPath: '/Users/alice/.bun/bin/agstatusline',
             resolvedPaths: [
-                '/Users/alice/.bun/bin/ccstatusline',
-                '/Users/alice/.nvm/versions/node/v24.9.0/bin/ccstatusline'
+                '/Users/alice/.bun/bin/agstatusline',
+                '/Users/alice/.nvm/versions/node/v24.9.0/bin/agstatusline'
             ],
             binDir: '/Users/alice/.bun/bin',
             version: '2.2.13',
-            warning: '⚠ Multiple ccstatusline binaries are on PATH. Claude Code will run the first match: /Users/alice/.bun/bin/ccstatusline.\nOther matches: /Users/alice/.nvm/versions/node/v24.9.0/bin/ccstatusline'
+            warning: '⚠ Multiple agstatusline binaries are on PATH. Antigravity CLI will run the first match: /Users/alice/.bun/bin/agstatusline.\nOther matches: /Users/alice/.nvm/versions/node/v24.9.0/bin/agstatusline'
         });
     });
 
     it('ignores transient bunx status line shims when identifying the active global command', () => {
         mockExecFileSync({
-            'which -a ccstatusline': '/var/folders/demo/T/bunx-501-ccstatusline@latest/node_modules/.bin/ccstatusline\n/Users/alice/.bun/bin/ccstatusline\n',
+            'which -a agstatusline': '/var/folders/demo/T/bunx-501-agstatusline@latest/node_modules/.bin/agstatusline\n/Users/alice/.bun/bin/agstatusline\n',
             'npm prefix -g': '/Users/alice/.nvm/versions/node/v24.9.0\n',
             'bun pm bin -g': '/Users/alice/.bun/bin\n'
         });
         vi.spyOn(fs, 'existsSync').mockImplementation(filePath => (
-            filePath === '/Users/alice/.bun/install/global/node_modules/ccstatusline/package.json'
+            filePath === '/Users/alice/.bun/install/global/node_modules/agstatusline/package.json'
         ));
         vi.spyOn(fs, 'readFileSync').mockImplementation((filePath) => {
-            if (filePath === '/Users/alice/.bun/install/global/node_modules/ccstatusline/package.json') {
+            if (filePath === '/Users/alice/.bun/install/global/node_modules/agstatusline/package.json') {
                 return '{"version":"2.2.14"}';
             }
 
@@ -130,8 +130,8 @@ describe('global package manager inspection', () => {
 
         expect(activeCommand).toEqual({
             packageManager: 'bun',
-            resolvedPath: '/Users/alice/.bun/bin/ccstatusline',
-            resolvedPaths: ['/Users/alice/.bun/bin/ccstatusline'],
+            resolvedPath: '/Users/alice/.bun/bin/agstatusline',
+            resolvedPaths: ['/Users/alice/.bun/bin/agstatusline'],
             binDir: '/Users/alice/.bun/bin',
             version: '2.2.14',
             warning: null
@@ -140,15 +140,15 @@ describe('global package manager inspection', () => {
 
     it('uses npm.cmd for Windows npm version lookup', () => {
         const execFileSyncSpy = mockExecFileSync({
-            'where ccstatusline': 'C:\\Users\\Alice\\AppData\\Roaming\\npm\\ccstatusline.cmd\r\n',
+            'where agstatusline': 'C:\\Users\\Alice\\AppData\\Roaming\\npm\\agstatusline.cmd\r\n',
             'npm.cmd prefix -g': 'C:\\Users\\Alice\\AppData\\Roaming\\npm\r\n',
             'npm.cmd root -g': 'C:\\Users\\Alice\\AppData\\Roaming\\npm\\node_modules\r\n'
         });
         vi.spyOn(fs, 'existsSync').mockImplementation(filePath => (
-            filePath === 'C:\\Users\\Alice\\AppData\\Roaming\\npm\\node_modules\\ccstatusline\\package.json'
+            filePath === 'C:\\Users\\Alice\\AppData\\Roaming\\npm\\node_modules\\agstatusline\\package.json'
         ));
         vi.spyOn(fs, 'readFileSync').mockImplementation((filePath) => {
-            if (filePath === 'C:\\Users\\Alice\\AppData\\Roaming\\npm\\node_modules\\ccstatusline\\package.json') {
+            if (filePath === 'C:\\Users\\Alice\\AppData\\Roaming\\npm\\node_modules\\agstatusline\\package.json') {
                 return '{"version":"2.2.13"}';
             }
 
@@ -165,8 +165,8 @@ describe('global package manager inspection', () => {
 
         expect(activeCommand).toEqual({
             packageManager: 'npm',
-            resolvedPath: 'C:\\Users\\Alice\\AppData\\Roaming\\npm\\ccstatusline.cmd',
-            resolvedPaths: ['C:\\Users\\Alice\\AppData\\Roaming\\npm\\ccstatusline.cmd'],
+            resolvedPath: 'C:\\Users\\Alice\\AppData\\Roaming\\npm\\agstatusline.cmd',
+            resolvedPaths: ['C:\\Users\\Alice\\AppData\\Roaming\\npm\\agstatusline.cmd'],
             binDir: 'C:\\Users\\Alice\\AppData\\Roaming\\npm',
             version: '2.2.13',
             warning: null
@@ -188,7 +188,7 @@ describe('global package manager inspection', () => {
         await runGlobalPackageUninstall('npm', { platform: 'win32' });
 
         expect(execFileSpy.mock.calls[0]?.[0]).toBe('npm.cmd');
-        expect(execFileSpy.mock.calls[0]?.[1]).toEqual(['uninstall', '-g', 'ccstatusline']);
+        expect(execFileSpy.mock.calls[0]?.[1]).toEqual(['uninstall', '-g', 'agstatusline']);
         expect(execFileSpy.mock.calls[0]?.[2]).toEqual(expect.objectContaining({ shell: true }));
     });
 });

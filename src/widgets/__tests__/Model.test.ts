@@ -57,13 +57,25 @@ describe('ModelWidget', () => {
 
         it('returns preview text in preview mode', () => {
             const ctx = makeContext({ isPreview: true });
-            expect(new ModelWidget().render(ITEM, ctx, DEFAULT_SETTINGS)).toBe('Model: Claude');
-            expect(new ModelWidget().render(RAW_ITEM, ctx, DEFAULT_SETTINGS)).toBe('Claude');
+            expect(new ModelWidget().render(ITEM, ctx, DEFAULT_SETTINGS)).toBe('Model: Gemini 2.5 Pro');
+            expect(new ModelWidget().render(RAW_ITEM, ctx, DEFAULT_SETTINGS)).toBe('Gemini 2.5 Pro');
+        });
+
+        it('describes Gemini models', () => {
+            expect(new ModelWidget().getDescription()).toContain('Gemini');
         });
 
         it('falls back to model id when display_name is absent', () => {
             const ctx = makeContext({ data: { model: { id: 'claude-opus-4-6[1m]' } } });
             expect(new ModelWidget().render(RAW_ITEM, ctx, DEFAULT_SETTINGS)).toBe('claude-opus-4-6[1m]');
+        });
+
+        it('supports label prefix and metadata label override', () => {
+            const widget = new ModelWidget();
+            expect(widget.getLabelPrefix()).toBe('Model: ');
+            const ctx = makeContext({ isPreview: true });
+            expect(widget.render({ ...ITEM, metadata: { label: 'M ' } }, ctx, DEFAULT_SETTINGS)).toBe('M Gemini 2.5 Pro');
+            expect(widget.render({ ...ITEM, metadata: { label: '' } }, ctx, DEFAULT_SETTINGS)).toBe('Gemini 2.5 Pro');
         });
     });
 });

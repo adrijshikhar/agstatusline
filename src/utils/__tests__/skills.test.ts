@@ -25,7 +25,7 @@ function writeSkillsLog(sessionId: string, lines: string[]): void {
 
 describe('skills metrics', () => {
     beforeEach(() => {
-        testHomeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-home-'));
+        testHomeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-home-'));
         vi.spyOn(os, 'homedir').mockReturnValue(testHomeDir);
     });
 

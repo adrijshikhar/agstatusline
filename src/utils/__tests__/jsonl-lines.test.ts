@@ -44,7 +44,7 @@ describe('jsonl line streaming', () => {
     });
 
     function writeTranscript(name: string, content: string): string {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-lines-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-lines-'));
         tempRoots.push(root);
         const filePath = path.join(root, name);
         fs.writeFileSync(filePath, content);
@@ -84,7 +84,7 @@ describe('jsonl line streaming', () => {
     });
 
     it('handles multi-byte utf-8 sequences that span sync read chunks', () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-lines-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-lines-'));
         tempRoots.push(root);
         const filePath = path.join(root, 'utf8.jsonl');
 
@@ -190,7 +190,7 @@ describe('jsonl line streaming', () => {
     });
 
     it('streams files containing many records across multiple chunks', async () => {
-        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-jsonl-lines-'));
+        const root = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-jsonl-lines-'));
         tempRoots.push(root);
         const filePath = path.join(root, 'chunked.jsonl');
 
@@ -214,7 +214,7 @@ describe('jsonl line streaming', () => {
     }, 30000);
 
     it('rejects stream open errors through the async reader', async () => {
-        const missingPath = path.join(os.tmpdir(), 'ccstatusline-jsonl-lines-missing', 'missing.jsonl');
+        const missingPath = path.join(os.tmpdir(), 'agstatusline-jsonl-lines-missing', 'missing.jsonl');
 
         await expect(collectAsync(missingPath)).rejects.toThrow();
     });

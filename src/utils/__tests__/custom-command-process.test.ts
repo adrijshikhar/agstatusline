@@ -18,7 +18,7 @@ import type { CustomCommandResult } from '../custom-command';
 // Bun, and a mocked spawn cannot exercise the actual stdout resource boundary.
 const require = createRequire(import.meta.url);
 const { execFileSync } = require('node:child_process') as typeof childProcess;
-const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-command-process-'));
+const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-command-process-'));
 const bundlePath = path.join(tempRoot, 'custom-command.mjs');
 const probePath = path.join(tempRoot, 'probe.mjs');
 const writerPath = path.join(tempRoot, 'writer.cjs');

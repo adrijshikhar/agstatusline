@@ -1,8 +1,12 @@
 import { EventEmitter } from 'events';
+import { HttpsProxyAgent } from 'https-proxy-agent';
 import {
+    afterEach,
+    beforeEach,
     describe,
     expect,
-    it
+    it,
+    vi
 } from 'vitest';
 
 import type { ClaudeIncidentWindow } from '../claude-service-status';
@@ -21,6 +25,37 @@ type StatusPageRequestFn = NonNullable<Parameters<typeof __testing.fetchStatusPa
 
 const HOUR_MS = 60 * 60 * 1000;
 const NOW = Date.parse('2026-08-15T12:00:00Z');
+
+// Tests set HTTPS_PROXY and NO_PROXY themselves; the environment running the
+// suite must not leak in.
+function isolateHttpsProxyEnv(): void {
+    let originalProxy: string | undefined;
+    let originalNoProxy: string | undefined;
+    let originalLowercaseNoProxy: string | undefined;
+
+    beforeEach(() => {
+        originalProxy = process.env.HTTPS_PROXY;
+        originalNoProxy = process.env.NO_PROXY;
+        originalLowercaseNoProxy = process.env.no_proxy;
+        delete process.env.HTTPS_PROXY;
+        delete process.env.NO_PROXY;
+        delete process.env.no_proxy;
+    });
+
+    afterEach(() => {
+        restoreEnv('HTTPS_PROXY', originalProxy);
+        restoreEnv('NO_PROXY', originalNoProxy);
+        restoreEnv('no_proxy', originalLowercaseNoProxy);
+    });
+}
+
+function restoreEnv(name: 'HTTPS_PROXY' | 'NO_PROXY' | 'no_proxy', value: string | undefined): void {
+    if (value === undefined) {
+        Reflect.deleteProperty(process.env, name);
+    } else {
+        process.env[name] = value;
+    }
+}
 
 function incident(impact: ClaudeIncidentWindow['impact'], startHoursAgo: number, endHoursAgo: number | null): ClaudeIncidentWindow {
     return {
@@ -149,6 +184,29 @@ describe('parseClaudeIncidentsResponse', () => {
 });
 
 describe('status page response handling', () => {
+    isolateHttpsProxyEnv();
+
+    function respondingRequest(statusCode: number, chunks: string[]): StatusPageRequestFn {
+        return (_options, onResponse) => {
+            const response = Object.assign(new EventEmitter(), {
+                statusCode,
+                setEncoding: () => undefined
+            });
+            const request = Object.assign(new EventEmitter(), {
+                destroy: () => undefined,
+                end() {
+                    onResponse(response);
+                    for (const chunk of chunks) {
+                        response.emit('data', chunk);
+                    }
+                    response.emit('end');
+                }
+            });
+
+            return request;
+        };
+    }
+
     function responseFailureRequest(event: 'aborted' | 'error'): StatusPageRequestFn {
         return (_options, onResponse) => {
             const response = Object.assign(new EventEmitter(), {
@@ -171,6 +229,33 @@ describe('status page response handling', () => {
             return request;
         };
     }
+
+    it('connects through HTTPS_PROXY when set', async () => {
+        process.env.HTTPS_PROXY = 'http://proxy.example:8080';
+        const requestFn = vi.fn(respondingRequest(200, ['{}']));
+
+        await expect(__testing.fetchStatusPagePath('/test', requestFn)).resolves.toBe('{}');
+        const agent = requestFn.mock.calls[0]?.[0]?.agent;
+        expect(agent).toBeInstanceOf(HttpsProxyAgent);
+        expect((agent as HttpsProxyAgent<string>).proxy.href).toBe('http://proxy.example:8080/');
+    });
+
+    it('connects directly when NO_PROXY lists status.claude.com', async () => {
+        process.env.HTTPS_PROXY = 'http://proxy.example:8080';
+        process.env.NO_PROXY = 'localhost,claude.com';
+        const requestFn = vi.fn(respondingRequest(200, ['{}']));
+
+        await expect(__testing.fetchStatusPagePath('/test', requestFn)).resolves.toBe('{}');
+        expect(requestFn.mock.calls[0]?.[0]).not.toHaveProperty('agent');
+    });
+
+    it('ignores a whitespace-only HTTPS_PROXY', async () => {
+        process.env.HTTPS_PROXY = '   ';
+        const requestFn = vi.fn(respondingRequest(200, ['{}']));
+
+        await expect(__testing.fetchStatusPagePath('/test', requestFn)).resolves.toBe('{}');
+        expect(requestFn.mock.calls[0]?.[0]).not.toHaveProperty('agent');
+    });
 
     it.each(['aborted', 'error'] as const)('settles with null when the response emits %s', async (event) => {
         const result = await Promise.race([

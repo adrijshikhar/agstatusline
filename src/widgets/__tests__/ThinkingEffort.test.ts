@@ -17,6 +17,7 @@ import type {
     WidgetItem
 } from '../../types';
 import { DEFAULT_SETTINGS } from '../../types/Settings';
+import { StatusJSONSchema } from '../../types/StatusJSON';
 import { loadAntigravitySettingsSync } from '../../utils/antigravity-settings';
 import { loadClaudeSettingsSync } from '../../utils/claude-settings';
 import { ThinkingEffortWidget } from '../ThinkingEffort';
@@ -100,7 +101,7 @@ function render(options: {
 describe('ThinkingEffortWidget', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ccstatusline-thinking-effort-'));
+        tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agstatusline-thinking-effort-'));
         mockedLoadSettings.mockReturnValue({});
         mockedLoadAgSettings.mockReturnValue({});
     });
@@ -182,6 +183,11 @@ describe('ThinkingEffortWidget', () => {
                 settingsValue: { effortLevel: 'low' },
                 statusData: { effort: { level: null } }
             });
+            expect(result).toBe('Thinking: default');
+        });
+
+        it('handles null model gracefully without crashing', () => {
+            const result = render({ statusData: StatusJSONSchema.parse({ model: null }) });
             expect(result).toBe('Thinking: default');
         });
     });

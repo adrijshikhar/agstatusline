@@ -29,7 +29,7 @@ export type MainMenuOption = 'lines'
 
 export interface MainMenuProps {
     onSelect: (value: MainMenuOption, index: number) => void;
-    isClaudeInstalled: boolean;
+    isAntigravityInstalled: boolean;
     hasChanges: boolean;
     initialSelection?: number;
     powerlineFontStatus: PowerlineFontStatus;
@@ -53,14 +53,14 @@ function usesManageInstallation(installation?: InstallationMetadata): boolean {
 }
 
 function getInstallationMenuItem(
-    isClaudeInstalled: boolean,
+    isAntigravityInstalled: boolean,
     installation?: InstallationMetadata
 ): MainMenuItem {
-    if (!isClaudeInstalled) {
+    if (!isAntigravityInstalled) {
         return {
-            label: '📦 Install to Claude Code',
+            label: '📦 Install to Antigravity CLI',
             value: 'install',
-            description: 'Add ccstatusline to your Claude Code settings for automatic status line rendering'
+            description: 'Add agstatusline to your Antigravity settings for automatic status line rendering'
         };
     }
 
@@ -68,19 +68,19 @@ function getInstallationMenuItem(
         return {
             label: '🧰 Manage Installation',
             value: 'manageInstallation',
-            description: 'Check pinned global package updates or uninstall ccstatusline'
+            description: 'Check pinned global package updates or uninstall agstatusline'
         };
     }
 
     return {
-        label: '🔌 Uninstall from Claude Code',
+        label: '🔌 Uninstall from Antigravity CLI',
         value: 'install',
-        description: 'Remove ccstatusline from your Claude Code settings'
+        description: 'Remove agstatusline from your Antigravity settings'
     };
 }
 
 export function buildMainMenuItems(
-    isClaudeInstalled: boolean,
+    isAntigravityInstalled: boolean,
     hasChanges: boolean,
     installation?: InstallationMetadata
 ): MainMenuEntry[] {
@@ -117,10 +117,10 @@ export function buildMainMenuItems(
         },
         {
             label: '🔧 Configure Status Line',
-            sublabel: isClaudeInstalled ? undefined : '(install first)',
-            disabled: !isClaudeInstalled,
+            sublabel: isAntigravityInstalled ? undefined : '(install first)',
+            disabled: !isAntigravityInstalled,
             value: 'configureStatusLine',
-            description: 'Configure Claude Code status line settings like refresh interval'
+            description: 'Configure Antigravity CLI status line settings like refresh interval'
         },
         '-',
         {
@@ -134,7 +134,7 @@ export function buildMainMenuItems(
             description: 'Load configuration from a previously exported JSON file'
         },
         '-',
-        getInstallationMenuItem(isClaudeInstalled, installation)
+        getInstallationMenuItem(isAntigravityInstalled, installation)
     ];
 
     if (hasChanges) {
@@ -152,9 +152,9 @@ export function buildMainMenuItems(
             },
             '-',
             {
-                label: '⭐ Like ccstatusline? Star us on GitHub',
+                label: '⭐ Like agstatusline? Star us on GitHub',
                 value: 'starGithub',
-                description: 'Open the ccstatusline GitHub repository in your browser so you can star the project'
+                description: 'Open the agstatusline GitHub repository in your browser so you can star the project'
             }
         );
     } else {
@@ -167,9 +167,9 @@ export function buildMainMenuItems(
             },
             '-',
             {
-                label: '⭐ Like ccstatusline? Star us on GitHub',
+                label: '⭐ Like agstatusline? Star us on GitHub',
                 value: 'starGithub',
-                description: 'Open the ccstatusline GitHub repository in your browser so you can star the project'
+                description: 'Open the agstatusline GitHub repository in your browser so you can star the project'
             }
         );
     }
@@ -198,19 +198,19 @@ export function getMainMenuSelectionIndex(items: MainMenuEntry[], option: MainMe
 }
 
 export function getMainMenuInstallSelectionIndex(
-    isClaudeInstalled: boolean,
+    isAntigravityInstalled: boolean,
     installation?: InstallationMetadata
 ): number {
-    const option = isClaudeInstalled && usesManageInstallation(installation)
+    const option = isAntigravityInstalled && usesManageInstallation(installation)
         ? 'manageInstallation'
         : 'install';
 
-    return getMainMenuSelectionIndex(buildMainMenuItems(isClaudeInstalled, false, installation), option);
+    return getMainMenuSelectionIndex(buildMainMenuItems(isAntigravityInstalled, false, installation), option);
 }
 
 export const MainMenu: React.FC<MainMenuProps> = ({
     onSelect,
-    isClaudeInstalled,
+    isAntigravityInstalled,
     hasChanges,
     initialSelection = 0,
     powerlineFontStatus,
@@ -218,7 +218,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
     installation,
     previewIsTruncated
 }) => {
-    const menuItems = buildMainMenuItems(isClaudeInstalled, hasChanges, installation);
+    const menuItems = buildMainMenuItems(isAntigravityInstalled, hasChanges, installation);
 
     // Check if we should show the truncation warning
     const showTruncationWarning

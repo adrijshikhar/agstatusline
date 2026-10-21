@@ -7,18 +7,24 @@ import type {
 } from '../types/Widget';
 import { formatPercent } from '../utils/number-format';
 
+import { formatRawOrLabeledValue } from './shared/raw-or-labeled';
+
+const LABEL = 'Quota: ';
+
 export class QuotaUsageWidget implements Widget {
     getDefaultColor(): string { return 'yellow'; }
     getDescription(): string { return 'Displays Antigravity API quota usage or remaining percentage'; }
     getDisplayName(): string { return 'Quota Usage'; }
     getCategory(): string { return 'Quota'; }
+    getLabelPrefix(): string { return LABEL; }
     getEditorDisplay(item: WidgetItem): WidgetEditorDisplay {
         return { displayText: this.getDisplayName() };
     }
 
-    render(item: WidgetItem, context: RenderContext, settings: Settings): string | null {
+    render(item: WidgetItem, context: RenderContext, _settings: Settings): string | null {
         if (context.isPreview) {
-            return item.rawValue ? '82%' : 'Quota: 82%';
+            const formatted = formatPercent(82, item.numberFormat);
+            return formatRawOrLabeledValue(item, this.getLabelPrefix(), formatted);
         }
 
         const quotaMap = context.data?.quota;
@@ -55,9 +61,10 @@ export class QuotaUsageWidget implements Widget {
 
         const percent = fraction * 100;
         const formatted = formatPercent(percent, item.numberFormat);
-        return item.rawValue ? formatted : `Quota: ${formatted}`;
+        return formatRawOrLabeledValue(item, this.getLabelPrefix(), formatted);
     }
 
     supportsRawValue(): boolean { return true; }
     supportsColors(item: WidgetItem): boolean { return true; }
+    supportsNumberFormat(): boolean { return true; }
 }

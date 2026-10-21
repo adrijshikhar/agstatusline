@@ -6,18 +6,23 @@ import type {
     WidgetItem
 } from '../types/Widget';
 
+import { formatRawOrLabeledValue } from './shared/raw-or-labeled';
+
+const LABEL = 'Model: ';
+
 export class ModelWidget implements Widget {
     getDefaultColor(): string { return 'cyan'; }
-    getDescription(): string { return 'Displays the Claude model name (e.g., Claude 3.5 Sonnet)'; }
+    getDescription(): string { return 'Displays the Gemini model name (e.g., Gemini 2.5 Pro)'; }
     getDisplayName(): string { return 'Model'; }
     getCategory(): string { return 'Core'; }
+    getLabelPrefix(): string { return LABEL; }
     getEditorDisplay(item: WidgetItem): WidgetEditorDisplay {
         return { displayText: this.getDisplayName() };
     }
 
-    render(item: WidgetItem, context: RenderContext, settings: Settings): string | null {
+    render(item: WidgetItem, context: RenderContext, _settings: Settings): string | null {
         if (context.isPreview) {
-            return item.rawValue ? 'Claude' : 'Model: Claude';
+            return formatRawOrLabeledValue(item, this.getLabelPrefix(), 'Gemini 2.5 Pro');
         }
 
         const model = context.data?.model;
@@ -27,7 +32,7 @@ export class ModelWidget implements Widget {
 
         if (modelDisplayName) {
             const shortName = modelDisplayName.replace(/\s*\(.*\)$/, '');
-            return item.rawValue ? shortName : `Model: ${shortName}`;
+            return formatRawOrLabeledValue(item, this.getLabelPrefix(), shortName);
         }
         return null;
     }

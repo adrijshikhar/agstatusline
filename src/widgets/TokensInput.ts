@@ -14,12 +14,14 @@ import { isHidden } from './shared/hideable';
 import { formatRawOrLabeledValue } from './shared/raw-or-labeled';
 
 const ZERO_HIDEABLE_STATE: HideableState = { key: 'zero', label: 'when token count is zero' };
+const LABEL = 'In: ';
 
 export class TokensInputWidget implements Widget {
     getDefaultColor(): string { return 'blue'; }
     getDescription(): string { return 'Shows input token count for the current session'; }
     getDisplayName(): string { return 'Tokens Input'; }
     getCategory(): string { return 'Tokens'; }
+    getLabelPrefix(): string { return LABEL; }
     getEditorDisplay(item: WidgetItem): WidgetEditorDisplay {
         return { displayText: this.getDisplayName() };
     }
@@ -31,7 +33,7 @@ export class TokensInputWidget implements Widget {
     render(item: WidgetItem, context: RenderContext, settings: Settings): string | null {
         const format = resolveNumberFormat('token', item, settings);
         if (context.isPreview) {
-            return formatRawOrLabeledValue(item, 'In: ', formatTokens(15200, format));
+            return formatRawOrLabeledValue(item, this.getLabelPrefix(), formatTokens(15200, format));
         }
 
         const inputTotalTokens = context.tokenMetrics?.inputTokens
@@ -45,7 +47,7 @@ export class TokensInputWidget implements Widget {
             return null;
         }
 
-        return formatRawOrLabeledValue(item, 'In: ', formatTokens(inputTotalTokens, format));
+        return formatRawOrLabeledValue(item, this.getLabelPrefix(), formatTokens(inputTotalTokens, format));
     }
 
     supportsRawValue(): boolean { return true; }

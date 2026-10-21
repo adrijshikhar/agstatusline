@@ -6,18 +6,23 @@ import type {
     WidgetItem
 } from '../types/Widget';
 
+import { formatRawOrLabeledValue } from './shared/raw-or-labeled';
+
+const LABEL = 'Session ID: ';
+
 export class SessionIdWidget implements Widget {
     getDefaultColor(): string { return 'cyan'; }
     getDescription(): string { return 'Shows the current Antigravity session ID reported in status JSON'; }
     getDisplayName(): string { return 'Session ID'; }
     getCategory(): string { return 'Session'; }
+    getLabelPrefix(): string { return LABEL; }
     getEditorDisplay(item: WidgetItem): WidgetEditorDisplay {
         return { displayText: this.getDisplayName() };
     }
 
-    render(item: WidgetItem, context: RenderContext, settings: Settings): string | null {
+    render(item: WidgetItem, context: RenderContext, _settings: Settings): string | null {
         if (context.isPreview) {
-            return item.rawValue ? 'preview-session-id' : 'Session ID: preview-session-id';
+            return formatRawOrLabeledValue(item, this.getLabelPrefix(), 'preview-session-id');
         }
 
         const sessionId = context.data?.session_id ?? context.data?.conversation_id;
@@ -25,7 +30,7 @@ export class SessionIdWidget implements Widget {
             return null;
         }
 
-        return item.rawValue ? sessionId : `Session ID: ${sessionId}`;
+        return formatRawOrLabeledValue(item, this.getLabelPrefix(), sessionId);
     }
 
     supportsRawValue(): boolean { return true; }

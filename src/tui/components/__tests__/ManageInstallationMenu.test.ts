@@ -42,7 +42,7 @@ describe('ManageInstallationMenu helpers', () => {
         ]);
     });
 
-    it('only offers Claude settings removal when no global package is detected', () => {
+    it('only offers Antigravity settings removal when no global package is detected', () => {
         const items = buildUninstallItems([
             {
                 packageManager: 'npm',
@@ -60,5 +60,6 @@ describe('ManageInstallationMenu helpers', () => {
 
         expect(items).toHaveLength(1);
         expect(items[0]?.value.packageManagers).toEqual([]);
+        expect(items[0]?.label).toBe('Remove from Antigravity settings only');
     });
 });

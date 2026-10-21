@@ -21,7 +21,7 @@ function getRefreshInputValue(interval: number | null): string {
 
 function getRefreshIntervalSublabel(interval: number | null, supported: boolean): string {
     if (!supported) {
-        return '(requires Claude Code >=2.1.97)';
+        return '(not supported by Antigravity CLI)';
     }
 
     if (interval === null) {
@@ -57,8 +57,8 @@ export function buildConfigureStatusLineItems(
             value: 'refreshInterval',
             disabled: !supportsRefreshInterval,
             description: supportsRefreshInterval
-                ? 'How often Claude Code refreshes the status line by re-running the command. Enter value in seconds (1-60), or leave empty to remove.'
-                : 'This setting requires Claude Code version 2.1.97 or later. Please update Claude Code to use this feature.'
+                ? 'How often Antigravity CLI refreshes the status line by re-running the command. Enter value in seconds (1-60), or leave empty to remove.'
+                : 'Refresh interval is not supported by Antigravity CLI. Antigravity CLI refreshes the status line natively on events.'
         },
         {
             label: '🧮 Git Cache TTL',
@@ -284,7 +284,7 @@ export const RefreshIntervalMenu: React.FC<RefreshIntervalMenuProps> = ({
     return (
         <Box flexDirection='column'>
             <Text bold>Configure Status Line</Text>
-            <Text color='white'>Configure Claude Code status line settings</Text>
+            <Text color='white'>Configure Antigravity CLI status line and cache settings</Text>
 
             {editingRefreshInterval ? (
                 <Box marginTop={1} flexDirection='column'>

@@ -59,7 +59,7 @@ const MAX_STDOUT_BYTES = 1024 * 1024;
 const customCommandCache = new Map<string, CustomCommandCacheEntry>();
 
 function getCacheDir(): string {
-    return path.join(os.homedir(), '.cache', 'ccstatusline');
+    return path.join(os.homedir(), '.cache', 'agstatusline');
 }
 
 function getCachePath(cwd: string): string {

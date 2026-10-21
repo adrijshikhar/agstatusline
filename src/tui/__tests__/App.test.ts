@@ -1,5 +1,8 @@
 import chalk from 'chalk';
+import * as fs from 'node:fs';
 import {
+    afterEach,
+    beforeEach,
     describe,
     expect,
     it,
@@ -10,6 +13,7 @@ import {
     DEFAULT_SETTINGS,
     type InstallationMetadata
 } from '../../types/Settings';
+import * as antigravitySettings from '../../utils/antigravity-settings';
 import {
     applyTuiImport,
     buildConfigLoadWarning,
@@ -20,6 +24,7 @@ import {
     getPathInferredInstallation,
     getPinnedVersionMismatch
 } from '../App';
+import * as claudeStatus from '../claude-status';
 import {
     buildMainMenuItems,
     getMainMenuInstallSelectionIndex,
@@ -27,12 +32,21 @@ import {
 } from '../components/MainMenu';
 import { buildManageInstallationItems } from '../components/ManageInstallationMenu';
 
+import {
+    KEYS,
+    pressKey,
+    renderApp,
+    setUpAppSandbox,
+    type AppSandbox
+} from './helpers/render-app';
+import { waitFor } from './helpers/wait-for-ink';
+
 function getMenuValues(
-    isClaudeInstalled: boolean,
+    isAntigravityInstalled: boolean,
     hasChanges: boolean,
     installation?: InstallationMetadata
 ): string[] {
-    return buildMainMenuItems(isClaudeInstalled, hasChanges, installation)
+    return buildMainMenuItems(isAntigravityInstalled, hasChanges, installation)
         .map(item => item === '-' ? '-' : item.value);
 }
 
@@ -87,7 +101,7 @@ describe('TUI config imports', () => {
 });
 
 describe('Pinned version mismatch guard', () => {
-    it('uses saved pinned metadata while Claude status line is still loading', () => {
+    it('uses saved pinned metadata while Antigravity status line is still loading', () => {
         const installation: InstallationMetadata = {
             method: 'pinned',
             installedVersion: '2.2.13'
@@ -103,13 +117,13 @@ describe('Pinned version mismatch guard', () => {
         expect(getPinnedVersionMismatch({
             method: 'auto-update',
             packageManager: 'bun'
-        }, '2.3.0', 'ccstatusline')).toBeNull();
+        }, '2.3.0', 'agstatusline')).toBeNull();
 
         expect(getPinnedVersionMismatch({
             method: 'pinned',
             packageManager: 'npm',
             installedVersion: '2.3.0'
-        }, '2.3.0', 'ccstatusline')).toBeNull();
+        }, '2.3.0', 'agstatusline')).toBeNull();
     });
 
     it('blocks when the running TUI is newer than the pinned global install', () => {
@@ -117,11 +131,11 @@ describe('Pinned version mismatch guard', () => {
             method: 'pinned',
             packageManager: 'bun',
             installedVersion: '2.2.13'
-        }, '2.3.0', '/home/alice/.bun/bin/ccstatusline')).toEqual({
+        }, '2.3.0', '/home/alice/.bun/bin/agstatusline')).toEqual({
             packageManager: 'bun',
             installedVersion: '2.2.13',
             runningVersion: '2.3.0',
-            relaunchCommand: '/home/alice/.bun/bin/ccstatusline',
+            relaunchCommand: '/home/alice/.bun/bin/agstatusline',
             canUpdateToRunningVersion: true
         });
     });
@@ -131,11 +145,11 @@ describe('Pinned version mismatch guard', () => {
             method: 'pinned',
             packageManager: 'npm',
             installedVersion: '2.3.0'
-        }, '2.2.13', '/usr/local/bin/ccstatusline')).toEqual({
+        }, '2.2.13', '/usr/local/bin/agstatusline')).toEqual({
             packageManager: 'npm',
             installedVersion: '2.3.0',
             runningVersion: '2.2.13',
-            relaunchCommand: '/usr/local/bin/ccstatusline',
+            relaunchCommand: '/usr/local/bin/agstatusline',
             canUpdateToRunningVersion: false
         });
     });
@@ -146,10 +160,10 @@ describe('Pinned version mismatch guard', () => {
             installedVersion: '2.2.13'
         }, {
             packageManager: 'bun',
-            resolvedPath: '/Users/alice/.bun/bin/ccstatusline',
+            resolvedPath: '/Users/alice/.bun/bin/agstatusline',
             resolvedPaths: [
-                '/Users/alice/.bun/bin/ccstatusline',
-                '/Users/alice/.nvm/versions/node/v24.9.0/bin/ccstatusline'
+                '/Users/alice/.bun/bin/agstatusline',
+                '/Users/alice/.nvm/versions/node/v24.9.0/bin/agstatusline'
             ],
             binDir: '/Users/alice/.bun/bin',
             version: null,
@@ -167,8 +181,8 @@ describe('Pinned version mismatch guard', () => {
             installedVersion: '2.2.13'
         }, {
             packageManager: 'bun',
-            resolvedPath: '/Users/alice/.bun/bin/ccstatusline',
-            resolvedPaths: ['/Users/alice/.bun/bin/ccstatusline'],
+            resolvedPath: '/Users/alice/.bun/bin/agstatusline',
+            resolvedPaths: ['/Users/alice/.bun/bin/agstatusline'],
             binDir: '/Users/alice/.bun/bin',
             version: '2.2.13',
             warning: null
@@ -283,6 +297,22 @@ describe('Main menu structure', () => {
             'manageInstallation'
         )).toBe(8);
     });
+
+    it('labels install and uninstall for Antigravity CLI', () => {
+        const installItem = buildMainMenuItems(false, false)
+            .find(item => item !== '-' && item.value === 'install');
+        expect(installItem).toEqual(expect.objectContaining({ label: '📦 Install to Antigravity CLI' }));
+
+        const uninstallItem = buildMainMenuItems(true, false)
+            .find(item => item !== '-' && item.value === 'install');
+        expect(uninstallItem).toEqual(expect.objectContaining({ label: '🔌 Uninstall from Antigravity CLI' }));
+    });
+
+    it('labels the star GitHub menu item for agstatusline', () => {
+        const starItem = buildMainMenuItems(false, false)
+            .find(item => item !== '-' && item.value === 'starGithub');
+        expect(starItem).toEqual(expect.objectContaining({ label: '⭐ Like agstatusline? Star us on GitHub' }));
+    });
 });
 
 describe('Invalid-config TUI guards', () => {
@@ -305,6 +335,11 @@ describe('Invalid-config TUI guards', () => {
         expect(guard?.message).toContain('could not be read');
     });
 
+    it('builds a save-guard confirm dialog that returns to the given screen on cancel', () => {
+        expect(buildInvalidConfigSaveConfirm('settings.json could not be read', vi.fn(), 'items')?.cancelScreen)
+            .toBe('items');
+    });
+
     it('invokes the provided onConfirm when the guard action runs', async () => {
         const onConfirm = vi.fn();
         const guard = buildInvalidConfigSaveConfirm('settings.json is not valid JSON', onConfirm);
@@ -317,5 +352,44 @@ describe('Invalid-config TUI guards', () => {
             .toContain('settings.json is not valid JSON');
         expect(buildInvalidConfigSaveConfirm('settings.json is not in a valid format', vi.fn())?.message)
             .toContain('not in a valid format');
+    });
+});
+
+describe('App save guard for an invalid settings.json', () => {
+    let sandbox: AppSandbox;
+
+    beforeEach(() => {
+        sandbox = setUpAppSandbox();
+        fs.writeFileSync(sandbox.settingsPath, JSON.stringify({ lines: 'not a list' }));
+        vi.spyOn(claudeStatus, 'loadClaudeStatusLineState').mockResolvedValue({ existingStatusLine: null, refreshInterval: null });
+        vi.spyOn(antigravitySettings, 'isStatusLineInstalled').mockResolvedValue({ installed: false });
+    });
+
+    afterEach(() => {
+        sandbox.restore();
+    });
+
+    it('returns to the screen Ctrl+S was pressed on, whether the save is cancelled or confirmed', async () => {
+        const rendered = renderApp();
+
+        try {
+            await waitFor(() => {
+                expect(rendered.getFrame()).toContain('not in a valid format');
+            });
+            await pressKey(rendered, KEYS.enter, 'Select Line to Edit Items');
+            await pressKey(rendered, KEYS.enter, 'Edit Line 1');
+
+            await pressKey(rendered, KEYS.ctrlS, 'is preserved on disk');
+            await pressKey(rendered, KEYS.escape, 'Edit Line 1');
+            expect(fs.readFileSync(sandbox.settingsPath, 'utf-8')).toContain('not a list');
+
+            await pressKey(rendered, KEYS.ctrlS, 'is preserved on disk');
+            await pressKey(rendered, KEYS.enter, '✓ Configuration saved');
+            expect(rendered.getFrame()).toContain('Edit Line 1');
+            const saved = JSON.parse(fs.readFileSync(sandbox.settingsPath, 'utf-8')) as { lines: unknown };
+            expect(Array.isArray(saved.lines)).toBe(true);
+        } finally {
+            rendered.cleanup();
+        }
     });
 });

@@ -15,14 +15,17 @@ import {
     NO_GIT_HIDEABLE_STATE,
     isHidden
 } from './shared/hideable';
+import { formatRawOrLabeledValue } from './shared/raw-or-labeled';
 
 const ZERO_HIDEABLE_STATE: HideableState = { key: 'zero', label: 'when the staged file count is zero' };
+const LABEL = 'S:';
 
 export class GitStagedFilesWidget implements Widget {
     getDefaultColor(): string { return 'green'; }
     getDescription(): string { return 'Shows count of staged files'; }
     getDisplayName(): string { return 'Git Staged Files'; }
     getCategory(): string { return 'Git'; }
+    getLabelPrefix(): string { return LABEL; }
     getEditorDisplay(item: WidgetItem): WidgetEditorDisplay {
         return { displayText: this.getDisplayName() };
     }
@@ -35,7 +38,7 @@ export class GitStagedFilesWidget implements Widget {
         const hideNoGit = isHidden(item, NO_GIT_HIDEABLE_STATE.key);
 
         if (context.isPreview) {
-            return item.rawValue ? '3' : 'S:3';
+            return formatRawOrLabeledValue(item, this.getLabelPrefix(), '3');
         }
 
         if (!isInsideGitWorkTree(context)) {
@@ -47,7 +50,7 @@ export class GitStagedFilesWidget implements Widget {
             return null;
         }
 
-        return item.rawValue ? `${counts.staged}` : `S:${counts.staged}`;
+        return formatRawOrLabeledValue(item, this.getLabelPrefix(), `${counts.staged}`);
     }
 
     getNumericValue(context: RenderContext, _item: WidgetItem): number | null {

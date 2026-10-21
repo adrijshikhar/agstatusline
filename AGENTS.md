@@ -50,8 +50,8 @@ The project has dual runtime compatibility—it develops and tests natively with
 
 ### Dual-Mode Contract
 - **Piped Mode (`!process.stdin.isTTY`)**:
-  - Reads Antigravity's `StatusLineData` JSON payload from stdin with a 1-second timeout.
-  - Parses payload with `parsePayload()` (handles malformed JSON, missing fields, and fallbacks safely).
+  - Reads Antigravity's JSON payload from stdin with a 1-second timeout.
+  - Parses payload with `StatusJSONSchema.safeParse()` (handles malformed JSON, null fields, and fallbacks safely).
   - Loads user settings from `~/.config/agstatusline/settings.json` (or `--config <path>`).
   - Formats widgets, colors, padding, and Powerline glyphs via `renderMultipleLines()`.
   - Writes formatted ANSI strings to stdout.
@@ -65,7 +65,7 @@ The project has dual runtime compatibility—it develops and tests natively with
 ### Directory Structure
 - **`src/agstatusline.ts`**: Main entrypoint handling CLI flags (`--install`, `--uninstall`, `--status`, `--tui`, `--config`, `-v`, `-h`) and dispatching between piped rendering and TUI mode.
 - **`src/types/`**:
-  - `Payload.ts`: TypeScript interfaces for Antigravity CLI telemetry (`StatusLineData`, `StatusLineModel`, `StatusLineContextWindow`, `StatusLineVCS`, `StatusLineQuotaBucket`, `StatusLineSubagent`, `StatusLineCost`, `StatusLineSandbox`, `StatusLineVim`).
+  - `StatusJSON.ts`: TypeScript interfaces and Zod schema for Antigravity CLI telemetry (`StatusJSON`, `StatusJSONSchema`, model, context_window, VCS, quota, subagents, cost, sandbox, vim).
   - `Settings.ts`: Zod schema and defaults for statusline configuration (`Settings`, `WidgetItem`).
   - `Widget.ts`: `Widget` interface contract and display metadata.
   - `canonical-widget-types.ts`: Union of all registered widget identifier types.
@@ -79,8 +79,8 @@ The project has dual runtime compatibility—it develops and tests natively with
   - `colors.ts`: ANSI code generation, TrueColor hex conversion, and gradient interpolation.
   - `widgets.ts`: Registry mapping canonical widget types to instances.
   - `widget-manifest.ts`: Manifest catalog of all widgets, descriptions, and categories.
-  - `payload.ts`: Resilient JSON parser and normalizer for Antigravity telemetry.
-  - `vcs.ts`: VCS utilities and git status resolution.
+  - `hooks.ts`: Cross-platform lifecycle hooks synchronization for Antigravity (`hooks.json`) and Claude Code.
+  - `git.ts`: Git utilities and VCS status resolution.
 - **`src/widgets/`**:
   - Modular implementations for Model, ContextWindow, ContextBar, ContextPercentage, QuotaUsage, QuotaReset, AgentState, Subagents, Tasks, Sandbox, VimMode, SessionCost, GitBranch, GitChanges, CurrentWorkingDir, SessionClock, TerminalWidth, CustomText, CustomSymbol, CustomCommand, and Version.
 - **`src/tui/`**:

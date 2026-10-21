@@ -28,7 +28,7 @@ export class GitWorktreeModeWidget implements Widget {
 
     render(item: WidgetItem, context: RenderContext, _settings: Settings): string | null {
         const worktree = context.isPreview ? true : context.data?.worktree;
-        const isInWorktree = worktree !== undefined && worktree !== null;
+        const isInWorktree = Boolean(worktree);
 
         if (item.rawValue) {
             return isInWorktree ? 'true' : 'false';

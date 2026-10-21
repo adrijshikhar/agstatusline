@@ -11,13 +11,13 @@ import {
     buildStatusLineCommand,
     classifyInstallation,
     type PackageCommandAvailability
-} from './claude-settings';
+} from './antigravity-settings';
 import {
     getPackageManagerExecutable,
     getPackageManagerShellOptions
 } from './package-manager-executable';
 
-export const NPM_REGISTRY_LATEST_URL = 'https://registry.npmjs.org/ccstatusline/latest';
+export const NPM_REGISTRY_LATEST_URL = 'https://registry.npmjs.org/agstatusline/latest';
 const DEFAULT_REGISTRY_TIMEOUT_MS = 5000;
 const GLOBAL_UPDATE_TIMEOUT_MS = 120000;
 
@@ -251,7 +251,7 @@ export function fetchLatestNpmVersion(timeoutMs = DEFAULT_REGISTRY_TIMEOUT_MS): 
             {
                 headers: {
                     'Accept': 'application/json',
-                    'User-Agent': 'ccstatusline'
+                    'User-Agent': 'agstatusline'
                 }
             },
             (response) => {
@@ -300,8 +300,8 @@ export function runGlobalPackageInstall(
 ): Promise<void> {
     const executable = getPackageManagerExecutable(packageManager, platform);
     const args = packageManager === 'npm'
-        ? ['install', '-g', `ccstatusline@${version}`]
-        : ['add', '-g', `ccstatusline@${version}`];
+        ? ['install', '-g', `agstatusline@${version}`]
+        : ['add', '-g', `agstatusline@${version}`];
 
     return new Promise((resolve, reject) => {
         execFile(

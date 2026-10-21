@@ -6,6 +6,10 @@ import type {
     WidgetItem
 } from '../types/Widget';
 
+import { formatRawOrLabeledValue } from './shared/raw-or-labeled';
+
+const LABEL = 'Reset: ';
+
 function formatDuration(totalSeconds: number): string {
     if (totalSeconds <= 0) {
         return '0m';
@@ -24,13 +28,14 @@ export class QuotaResetWidget implements Widget {
     getDescription(): string { return 'Displays the countdown timer until Antigravity API quota resets'; }
     getDisplayName(): string { return 'Quota Reset'; }
     getCategory(): string { return 'Quota'; }
+    getLabelPrefix(): string { return LABEL; }
     getEditorDisplay(item: WidgetItem): WidgetEditorDisplay {
         return { displayText: this.getDisplayName() };
     }
 
-    render(item: WidgetItem, context: RenderContext, settings: Settings): string | null {
+    render(item: WidgetItem, context: RenderContext, _settings: Settings): string | null {
         if (context.isPreview) {
-            return item.rawValue ? '4h 12m' : 'Reset: 4h 12m';
+            return formatRawOrLabeledValue(item, this.getLabelPrefix(), '4h 12m');
         }
 
         const quotaMap = context.data?.quota;
@@ -65,7 +70,7 @@ export class QuotaResetWidget implements Widget {
         }
 
         const formatted = formatDuration(secondsRemaining);
-        return item.rawValue ? formatted : `Reset: ${formatted}`;
+        return formatRawOrLabeledValue(item, this.getLabelPrefix(), formatted);
     }
 
     supportsRawValue(): boolean { return true; }

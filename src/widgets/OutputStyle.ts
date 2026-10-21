@@ -8,14 +8,17 @@ import type {
 } from '../types/Widget';
 
 import { isHidden } from './shared/hideable';
+import { formatRawOrLabeledValue } from './shared/raw-or-labeled';
 
 const DEFAULT_VALUE_HIDEABLE_STATE: HideableState = { key: 'default-value', label: 'when style is \'default\'' };
+const LABEL = 'Style: ';
 
 export class OutputStyleWidget implements Widget {
     getDefaultColor(): string { return 'cyan'; }
     getDescription(): string { return 'Shows the current Antigravity output style'; }
     getDisplayName(): string { return 'Output Style'; }
     getCategory(): string { return 'Core'; }
+    getLabelPrefix(): string { return LABEL; }
     getEditorDisplay(item: WidgetItem): WidgetEditorDisplay {
         return { displayText: this.getDisplayName() };
     }
@@ -26,13 +29,13 @@ export class OutputStyleWidget implements Widget {
 
     render(item: WidgetItem, context: RenderContext, settings: Settings): string | null {
         if (context.isPreview) {
-            return item.rawValue ? 'default' : 'Style: default';
+            return formatRawOrLabeledValue(item, this.getLabelPrefix(), 'default');
         } else if (context.data?.output_style?.name) {
             const styleName = context.data.output_style.name;
             if (styleName === 'default' && isHidden(item, DEFAULT_VALUE_HIDEABLE_STATE.key)) {
                 return null;
             }
-            return item.rawValue ? styleName : `Style: ${styleName}`;
+            return formatRawOrLabeledValue(item, this.getLabelPrefix(), styleName);
         }
         return null;
     }

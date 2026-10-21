@@ -1,0 +1,10 @@
+# NOTICE
+
+This project includes code derived from ccstatusline (https://github.com/sirmalloc/ccstatusline),
+licensed under the MIT License.
+
+Portions Copyright (c) 2025 Matthew Breedlove
+
+agstatusline maintains automated upstream parity with sirmalloc/ccstatusline:
+- Baseline Commit: 19c6665ecf14309a5ffcfcda5e31972833dd821a
+- Baseline Release: v2.2.32

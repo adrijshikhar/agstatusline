@@ -1,8 +1,10 @@
+import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import {
     mkdir,
     readFile,
     rename,
+    stat,
     unlink,
     writeFile
 } from 'node:fs/promises';
@@ -12,6 +14,125 @@ import path, {
     dirname,
     resolve
 } from 'node:path';
+
+import type { InstallationMetadata } from '../types/Settings';
+
+import {
+    getConfigPath,
+    isCustomConfigPath
+} from './config';
+
+export const AGSTATUSLINE_COMMANDS = {
+    AUTO_NPX: 'npx -y agstatusline@latest',
+    AUTO_BUNX: 'bunx -y agstatusline@latest',
+    GLOBAL: 'agstatusline'
+};
+
+export const PINNED_INSTALL_COMMANDS = {
+    NPM: (version: string) => `npm install -g agstatusline@${version}`,
+    BUN: (version: string) => `bun add -g agstatusline@${version}`
+};
+
+export type StatusLineCommandMode = 'auto-npx' | 'auto-bunx' | 'global';
+
+export interface PackageCommandAvailability {
+    npm: boolean;
+    npx: boolean;
+    bun: boolean;
+    bunx: boolean;
+}
+
+export function getPackageCommandAvailability(): PackageCommandAvailability {
+    const hasCommand = (cmd: string): boolean => {
+        try {
+            const checkCmd = process.platform === 'win32' ? `where ${cmd}` : `command -v ${cmd}`;
+            execSync(checkCmd, { stdio: 'ignore' });
+            return true;
+        } catch {
+            return false;
+        }
+    };
+
+    return {
+        npm: hasCommand('npm'),
+        npx: hasCommand('npx'),
+        bun: hasCommand('bun'),
+        bunx: hasCommand('bunx')
+    };
+}
+
+function getBaseCommandForMode(commandMode: StatusLineCommandMode): string {
+    switch (commandMode) {
+        case 'auto-npx':
+            return AGSTATUSLINE_COMMANDS.AUTO_NPX;
+        case 'auto-bunx':
+            return AGSTATUSLINE_COMMANDS.AUTO_BUNX;
+        case 'global':
+            return AGSTATUSLINE_COMMANDS.GLOBAL;
+    }
+}
+
+export function buildStatusLineCommand(commandMode: StatusLineCommandMode): string {
+    const base = getBaseCommandForMode(commandMode);
+    if (isCustomConfigPath()) {
+        return `${base} --config "${getConfigPath()}"`;
+    }
+    return base;
+}
+
+function matchesCommandBase(command: string, baseCommand: string): boolean {
+    return command === baseCommand || command.startsWith(`${baseCommand} --config `);
+}
+
+export function isKnownCommand(command: string): boolean {
+    const prefixes = [AGSTATUSLINE_COMMANDS.AUTO_NPX, AGSTATUSLINE_COMMANDS.AUTO_BUNX, AGSTATUSLINE_COMMANDS.GLOBAL];
+    return prefixes.some(prefix => matchesCommandBase(command, prefix))
+        || /(?:^|[\s"'\\/])agstatusline(?:\.ts)?(?=$|[\s"'])/.test(command);
+}
+
+export function classifyInstallation(
+    command: string | null | undefined,
+    metadata?: InstallationMetadata
+): InstallationMetadata {
+    const statusLineCommand = command ?? '';
+
+    if (matchesCommandBase(statusLineCommand, AGSTATUSLINE_COMMANDS.AUTO_NPX)) {
+        return {
+            method: 'auto-update',
+            packageManager: 'npm'
+        };
+    }
+
+    if (matchesCommandBase(statusLineCommand, AGSTATUSLINE_COMMANDS.AUTO_BUNX)) {
+        return {
+            method: 'auto-update',
+            packageManager: 'bun'
+        };
+    }
+
+    if (matchesCommandBase(statusLineCommand, AGSTATUSLINE_COMMANDS.GLOBAL)) {
+        if (metadata?.method === 'pinned') {
+            return metadata;
+        }
+
+        return {
+            method: 'self-managed',
+            packageManager: 'unknown'
+        };
+    }
+
+    if (/(?:^|[\s"'\\/])agstatusline(?:\.ts)?(?=$|[\s"'])/.test(statusLineCommand)) {
+        return {
+            method: 'self-managed',
+            packageManager: 'unknown'
+        };
+    }
+
+    return metadata ?? {
+        method: 'self-managed',
+        packageManager: 'unknown'
+    };
+}
 
 export interface InstallStatusLineOptions {
     command?: string;
@@ -25,12 +146,21 @@ export interface StatusLineInstallStatus {
     enabled?: boolean;
 }
 
-async function writeJsonAtomic(file: string, data: unknown): Promise<void> {
+async function getReplacedFileMode(filePath: string): Promise<number> {
+    try {
+        return (await stat(filePath)).mode & 0o777;
+    } catch {
+        return 0o666;
+    }
+}
+
+export async function writeJsonAtomic(file: string, data: unknown): Promise<void> {
     const dir = dirname(file);
     await mkdir(dir, { recursive: true });
     const tempPath = resolve(dir, `${basename(file)}.${process.pid}.${Date.now()}.tmp`);
+    const mode = await getReplacedFileMode(file);
     try {
-        await writeFile(tempPath, JSON.stringify(data, null, 2), 'utf8');
+        await writeFile(tempPath, JSON.stringify(data, null, 2), { encoding: 'utf8', mode });
         await rename(tempPath, file);
     } catch (error) {
         await unlink(tempPath).catch(() => undefined);
@@ -68,18 +198,86 @@ export function getAntigravitySettingsPath(): string {
     return path.join(getAntigravityConfigDir(), 'settings.json');
 }
 
-export async function loadAntigravitySettings(
-    settingsPath?: string
-): Promise<Record<string, unknown>> {
+export function getAntigravityHooksPath(): string {
+    const customPath = process.env.ANTIGRAVITY_HOOKS_PATH;
+    if (customPath && customPath.trim().length > 0) {
+        return path.resolve(customPath.trim());
+    }
+    const configDir = getAntigravityConfigDir();
+    return path.resolve(configDir, '..', 'config', 'hooks.json');
+}
+
+export interface LoadAntigravitySettingsOptions {
+    logErrors?: boolean;
+    throwOnError?: boolean;
+}
+
+export async function backupAntigravitySettings(
+    settingsPath?: string,
+    suffix = '.orig'
+): Promise<string | null> {
     const targetFile = settingsPath ?? getAntigravitySettingsPath();
+    const backupPath = `${targetFile}${suffix}`;
+
+    // If a pristine .orig backup already exists, preserve it across subsequent installs
+    if (suffix === '.orig') {
+        try {
+            await stat(backupPath);
+            return backupPath;
+        } catch {
+            // Backup does not exist yet; proceed to create it
+        }
+    }
+
     try {
         const content = await readFile(targetFile, 'utf8');
+        const mode = await getReplacedFileMode(targetFile);
+        try {
+            await unlink(backupPath);
+        } catch {
+            // Ignore if backup does not exist yet
+        }
+        await writeFile(backupPath, content, { encoding: 'utf8', mode });
+        return backupPath;
+    } catch {
+        return null;
+    }
+}
+
+export async function loadAntigravitySettings(
+    settingsPath?: string,
+    options?: LoadAntigravitySettingsOptions
+): Promise<Record<string, unknown>> {
+    const targetFile = settingsPath ?? getAntigravitySettingsPath();
+    let content: string;
+    try {
+        content = await readFile(targetFile, 'utf8');
+    } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+            return {};
+        }
+        if (options?.throwOnError) {
+            throw error;
+        }
+        return {};
+    }
+
+    try {
         const parsed = JSON.parse(content) as unknown;
         if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
             return parsed as Record<string, unknown>;
         }
+        if (options?.throwOnError) {
+            throw new Error('Settings file does not contain a JSON object');
+        }
         return {};
-    } catch {
+    } catch (error) {
+        if (options?.logErrors) {
+            console.error('Failed to parse Antigravity settings JSON:', error);
+        }
+        if (options?.throwOnError) {
+            throw error;
+        }
         return {};
     }
 }
@@ -154,7 +352,18 @@ export async function isStatusLineInstalled(
 
 export async function installStatusLine(options?: InstallStatusLineOptions): Promise<void> {
     const targetFile = options?.settingsPath ?? getAntigravitySettingsPath();
-    const settings = await loadAntigravitySettings(targetFile);
+    const backupPath = await backupAntigravitySettings(targetFile, '.orig');
+
+    let settings: Record<string, unknown>;
+    try {
+        settings = await loadAntigravitySettings(targetFile, { throwOnError: true });
+    } catch {
+        const fallbackBackupPath = `${targetFile}.orig`;
+        console.error(
+            `Warning: Could not read existing Antigravity settings. A backup exists at ${backupPath ?? fallbackBackupPath}.`
+        );
+        settings = {};
+    }
 
     let command: string;
     if (options?.command && options.command.trim().length > 0) {
@@ -171,6 +380,37 @@ export async function installStatusLine(options?: InstallStatusLineOptions): Pro
         enabled: true
     };
 
+    await saveAntigravitySettings(settings, targetFile);
+}
+
+export async function getExistingStatusLine(settingsPath?: string): Promise<string | null> {
+    const status = await isStatusLineInstalled(settingsPath);
+    return status.command ?? null;
+}
+
+export async function getRefreshInterval(settingsPath?: string): Promise<number | null> {
+    try {
+        const targetFile = settingsPath ?? getAntigravitySettingsPath();
+        const settings = await loadAntigravitySettings(targetFile);
+        const sl = settings.statusLine as Record<string, unknown> | undefined;
+        return typeof sl?.refreshInterval === 'number' ? sl.refreshInterval : null;
+    } catch {
+        return null;
+    }
+}
+
+export async function setRefreshInterval(interval: number | null, settingsPath?: string): Promise<void> {
+    const targetFile = settingsPath ?? getAntigravitySettingsPath();
+    const settings = await loadAntigravitySettings(targetFile);
+    if (!settings.statusLine || typeof settings.statusLine !== 'object' || Array.isArray(settings.statusLine)) {
+        return;
+    }
+    const sl = settings.statusLine as Record<string, unknown>;
+    if (interval === null) {
+        delete sl.refreshInterval;
+    } else {
+        sl.refreshInterval = interval;
+    }
     await saveAntigravitySettings(settings, targetFile);
 }
 

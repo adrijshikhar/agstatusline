@@ -128,6 +128,30 @@ describe('getContextConfig', () => {
         });
     });
 
+    describe('AGSTATUSLINE_CONTEXT_SIZE_FALLBACK override', () => {
+        afterEach(() => {
+            delete process.env.AGSTATUSLINE_CONTEXT_SIZE_FALLBACK;
+            delete process.env.CCSTATUSLINE_CONTEXT_SIZE_FALLBACK;
+        });
+
+        it('uses the env value as the fallback when no window size is otherwise known', () => {
+            process.env.AGSTATUSLINE_CONTEXT_SIZE_FALLBACK = '1000000';
+            const config = getContextConfig('gemini-2.5-pro');
+
+            expect(config.maxTokens).toBe(1000000);
+            expect(config.usableTokens).toBe(800000);
+        });
+
+        it('prefers AGSTATUSLINE_CONTEXT_SIZE_FALLBACK over legacy CCSTATUSLINE_CONTEXT_SIZE_FALLBACK', () => {
+            process.env.AGSTATUSLINE_CONTEXT_SIZE_FALLBACK = '1500000';
+            process.env.CCSTATUSLINE_CONTEXT_SIZE_FALLBACK = '500000';
+            const config = getContextConfig(undefined);
+
+            expect(config.maxTokens).toBe(1500000);
+            expect(config.usableTokens).toBe(1200000);
+        });
+    });
+
     describe('CCSTATUSLINE_CONTEXT_SIZE_FALLBACK override', () => {
         afterEach(() => {
             delete process.env.CCSTATUSLINE_CONTEXT_SIZE_FALLBACK;

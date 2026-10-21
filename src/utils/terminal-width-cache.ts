@@ -57,7 +57,7 @@ function isEexist(error: unknown): boolean {
 
 /**
  * Best-effort mutual exclusion for the read-modify-write in writeCachedWidth.
- * Without this, two ccstatusline processes (e.g. two concurrent Claude Code
+ * Without this, two agstatusline processes (e.g. two concurrent Antigravity CLI
  * sessions) racing to write the same cache file can each read a snapshot
  * that doesn't include the other's entry yet, and whichever renames last
  * silently clobbers the other's write.

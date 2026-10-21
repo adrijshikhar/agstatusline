@@ -126,32 +126,45 @@ function hasSessionDurationInStatusJson(data: StatusJSON): boolean {
     return typeof durationMs === 'number' && Number.isFinite(durationMs) && durationMs >= 0;
 }
 
-async function readStdin(): Promise<string | null> {
+async function readStdin(timeoutMs = 1000): Promise<string | null> {
     // Check if stdin is a TTY (terminal) - if it is, there's no piped data
     if (process.stdin.isTTY) {
         return null;
     }
 
-    const chunks: string[] = [];
+    const readPromise = (async (): Promise<string | null> => {
+        const chunks: string[] = [];
+        try {
+            if (typeof Bun !== 'undefined') {
+                const decoder = new TextDecoder();
+                for await (const chunk of Bun.stdin.stream()) {
+                    chunks.push(decoder.decode(chunk));
+                }
+            } else {
+                process.stdin.setEncoding('utf8');
+                for await (const chunk of process.stdin) {
+                    chunks.push(chunk as string);
+                }
+            }
+            return chunks.join('');
+        } catch {
+            return null;
+        }
+    })();
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeoutPromise = new Promise<null>((resolve) => {
+        timer = setTimeout(() => {
+            resolve(null);
+        }, timeoutMs);
+    });
 
     try {
-        // Use Node.js compatible approach
-        if (typeof Bun !== 'undefined') {
-            // Bun environment
-            const decoder = new TextDecoder();
-            for await (const chunk of Bun.stdin.stream()) {
-                chunks.push(decoder.decode(chunk));
-            }
-        } else {
-            // Node.js environment
-            process.stdin.setEncoding('utf8');
-            for await (const chunk of process.stdin) {
-                chunks.push(chunk as string);
-            }
+        return await Promise.race([readPromise, timeoutPromise]);
+    } finally {
+        if (timer !== undefined) {
+            clearTimeout(timer);
         }
-        return chunks.join('');
-    } catch {
-        return null;
     }
 }
 
@@ -435,6 +448,9 @@ Options:
     if (process.argv.includes('--install')) {
         const { installStatusLine } = await import('./utils/antigravity-settings');
         await installStatusLine();
+        const settings = await loadSettings();
+        const { syncWidgetHooks } = await import('./utils/hooks');
+        await syncWidgetHooks(settings);
         console.log('Successfully installed agstatusline into Antigravity CLI settings');
         process.exit(0);
     }
@@ -442,6 +458,8 @@ Options:
     if (process.argv.includes('--uninstall')) {
         const { uninstallStatusLine } = await import('./utils/antigravity-settings');
         await uninstallStatusLine();
+        const { removeManagedHooks } = await import('./utils/hooks');
+        await removeManagedHooks();
         console.log('Successfully uninstalled agstatusline from Antigravity CLI settings');
         process.exit(0);
     }
@@ -462,22 +480,31 @@ Options:
         // We're receiving piped input
         const input = await readStdin();
         if (input && input.trim() !== '') {
+            let statusData: StatusJSON = {};
             try {
                 // Parse and validate JSON in one step
-                const result = StatusJSONSchema.safeParse(JSON.parse(input));
-                if (!result.success) {
-                    console.error('Invalid status JSON format:', result.error.message);
-                    process.exit(1);
-                }
-
-                await renderMultipleLines(result.data);
+                const parsed = JSON.parse(input) as unknown;
+                const result = StatusJSONSchema.safeParse(parsed);
+                statusData = result.success
+                    ? result.data
+                    : (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)
+                        ? (parsed as StatusJSON)
+                        : {});
             } catch (error) {
                 console.error('Error parsing JSON:', error);
-                process.exit(1);
+            }
+
+            try {
+                await renderMultipleLines(statusData);
+            } catch (error) {
+                console.error('Error rendering statusline:', error);
             }
         } else {
-            console.error('No input received');
-            process.exit(1);
+            try {
+                await renderMultipleLines({});
+            } catch (error) {
+                console.error('Error rendering fallback statusline:', error);
+            }
         }
     } else {
         // Interactive mode - run TUI
