@@ -45,7 +45,7 @@ function resolveThinkingEffortFromStatusJson(context: RenderContext): ResolvedTh
         if (fromName) {
             return fromName;
         }
-    } else if (typeof model === 'object') {
+    } else if (model && typeof model === 'object') {
         const effortProp = (model as { effort?: unknown }).effort;
         if (typeof effortProp === 'string') {
             return normalizeThinkingEffort(effortProp);

@@ -111,4 +111,57 @@ describe('StatusJSONSchema numeric coercion', () => {
         expect(result.data.rate_limits?.five_hour?.used_percentage).toBe(42);
         expect(result.data.rate_limits?.five_hour?.resets_at).toBe(1774020000);
     });
+
+    it('accepts null model and treats it as undefined', () => {
+        const result = StatusJSONSchema.safeParse({ model: null });
+
+        expect(result.success).toBe(true);
+        if (!result.success) {
+            return;
+        }
+
+        expect(result.data.model).toBeUndefined();
+    });
+
+    it('accepts model object with null properties', () => {
+        const result = StatusJSONSchema.safeParse({
+            model: {
+                id: null,
+                display_name: null,
+                effort: null
+            }
+        });
+
+        expect(result.success).toBe(true);
+        if (!result.success) {
+            return;
+        }
+
+        expect(result.data.model).toEqual({
+            id: undefined,
+            display_name: undefined,
+            effort: undefined
+        });
+    });
+
+    it('accepts null for optional objects like cost, tasks, and workspace', () => {
+        const result = StatusJSONSchema.safeParse({
+            cost: null,
+            tasks: null,
+            workspace: null,
+            context_window: null,
+            vcs: null
+        });
+
+        expect(result.success).toBe(true);
+        if (!result.success) {
+            return;
+        }
+
+        expect(result.data.cost).toBeUndefined();
+        expect(result.data.tasks).toBeUndefined();
+        expect(result.data.workspace).toBeUndefined();
+        expect(result.data.context_window).toBeUndefined();
+        expect(result.data.vcs).toBeUndefined();
+    });
 });

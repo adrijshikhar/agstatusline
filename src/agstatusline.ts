@@ -462,18 +462,25 @@ Options:
         // We're receiving piped input
         const input = await readStdin();
         if (input && input.trim() !== '') {
+            let statusData: StatusJSON = {};
             try {
                 // Parse and validate JSON in one step
-                const result = StatusJSONSchema.safeParse(JSON.parse(input));
-                if (!result.success) {
-                    console.error('Invalid status JSON format:', result.error.message);
-                    process.exit(1);
-                }
-
-                await renderMultipleLines(result.data);
+                const parsed = JSON.parse(input) as unknown;
+                const result = StatusJSONSchema.safeParse(parsed);
+                statusData = result.success
+                    ? result.data
+                    : (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)
+                        ? (parsed as StatusJSON)
+                        : {});
             } catch (error) {
                 console.error('Error parsing JSON:', error);
                 process.exit(1);
+            }
+
+            try {
+                await renderMultipleLines(statusData);
+            } catch (error) {
+                console.error('Error rendering statusline:', error);
             }
         } else {
             console.error('No input received');
