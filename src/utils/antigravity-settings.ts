@@ -154,7 +154,7 @@ async function getReplacedFileMode(filePath: string): Promise<number> {
     }
 }
 
-async function writeJsonAtomic(file: string, data: unknown): Promise<void> {
+export async function writeJsonAtomic(file: string, data: unknown): Promise<void> {
     const dir = dirname(file);
     await mkdir(dir, { recursive: true });
     const tempPath = resolve(dir, `${basename(file)}.${process.pid}.${Date.now()}.tmp`);
@@ -198,18 +198,75 @@ export function getAntigravitySettingsPath(): string {
     return path.join(getAntigravityConfigDir(), 'settings.json');
 }
 
-export async function loadAntigravitySettings(
-    settingsPath?: string
-): Promise<Record<string, unknown>> {
+export function getAntigravityHooksPath(): string {
+    const customPath = process.env.ANTIGRAVITY_HOOKS_PATH;
+    if (customPath && customPath.trim().length > 0) {
+        return path.resolve(customPath.trim());
+    }
+    const configDir = getAntigravityConfigDir();
+    return path.resolve(configDir, '..', 'config', 'hooks.json');
+}
+
+export interface LoadAntigravitySettingsOptions {
+    logErrors?: boolean;
+    throwOnError?: boolean;
+}
+
+export async function backupAntigravitySettings(
+    settingsPath?: string,
+    suffix = '.orig'
+): Promise<string | null> {
     const targetFile = settingsPath ?? getAntigravitySettingsPath();
+    const backupPath = `${targetFile}${suffix}`;
     try {
         const content = await readFile(targetFile, 'utf8');
+        const mode = await getReplacedFileMode(targetFile);
+        try {
+            await unlink(backupPath);
+        } catch {
+            // Ignore if backup does not exist yet
+        }
+        await writeFile(backupPath, content, { encoding: 'utf8', mode });
+        return backupPath;
+    } catch {
+        return null;
+    }
+}
+
+export async function loadAntigravitySettings(
+    settingsPath?: string,
+    options?: LoadAntigravitySettingsOptions
+): Promise<Record<string, unknown>> {
+    const targetFile = settingsPath ?? getAntigravitySettingsPath();
+    let content: string;
+    try {
+        content = await readFile(targetFile, 'utf8');
+    } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+            return {};
+        }
+        if (options?.throwOnError) {
+            throw error;
+        }
+        return {};
+    }
+
+    try {
         const parsed = JSON.parse(content) as unknown;
         if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
             return parsed as Record<string, unknown>;
         }
+        if (options?.throwOnError) {
+            throw new Error('Settings file does not contain a JSON object');
+        }
         return {};
-    } catch {
+    } catch (error) {
+        if (options?.logErrors) {
+            console.error('Failed to parse Antigravity settings JSON:', error);
+        }
+        if (options?.throwOnError) {
+            throw error;
+        }
         return {};
     }
 }
@@ -284,7 +341,18 @@ export async function isStatusLineInstalled(
 
 export async function installStatusLine(options?: InstallStatusLineOptions): Promise<void> {
     const targetFile = options?.settingsPath ?? getAntigravitySettingsPath();
-    const settings = await loadAntigravitySettings(targetFile);
+    const backupPath = await backupAntigravitySettings(targetFile, '.orig');
+
+    let settings: Record<string, unknown>;
+    try {
+        settings = await loadAntigravitySettings(targetFile, { throwOnError: true });
+    } catch {
+        const fallbackBackupPath = `${targetFile}.orig`;
+        console.error(
+            `Warning: Could not read existing Antigravity settings. A backup exists at ${backupPath ?? fallbackBackupPath}.`
+        );
+        settings = {};
+    }
 
     let command: string;
     if (options?.command && options.command.trim().length > 0) {

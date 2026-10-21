@@ -654,6 +654,9 @@ export const App: React.FC = () => {
                             customConfigPath: isCustomConfigPath() ? getConfigPath() : undefined
                         });
                         await saveInstallationMetadata(selection.metadata);
+                        const { syncWidgetHooks } = await import('../utils/hooks');
+                        const currentSettings = await loadSettings();
+                        await syncWidgetHooks(currentSettings);
 
                         // Install re-ran loadSettings internally — re-sync the captured
                         // config-load error so the banner/guard reflect the file's current state.
@@ -907,6 +910,8 @@ export const App: React.FC = () => {
 
                 try {
                     await uninstallStatusLine();
+                    const { removeManagedHooks } = await import('../utils/hooks');
+                    await removeManagedHooks();
                     await saveInstallationMetadata(undefined);
                     setConfigLoadError(getConfigLoadError());
                     removedAntigravitySettings = true;

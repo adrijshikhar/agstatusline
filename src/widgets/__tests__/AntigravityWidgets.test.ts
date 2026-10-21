@@ -131,9 +131,11 @@ describe('Native Antigravity Widgets', () => {
             expect(widget.getDefaultColor()).toBe('yellow');
         });
 
-        it('renders preview mode', () => {
+        it('renders preview mode with precision formatting', () => {
             const item: WidgetItem = { id: 'quota', type: 'quota-usage' };
-            expect(widget.render(item, { isPreview: true }, DEFAULT_SETTINGS)).toBe('Quota: 82%');
+            expect(widget.render(item, { isPreview: true }, DEFAULT_SETTINGS)).toBe('Quota: 82.0%');
+            expect(widget.render({ ...item, numberFormat: { style: 'whole' } }, { isPreview: true }, DEFAULT_SETTINGS)).toBe('Quota: 82%');
+            expect(widget.render({ ...item, numberFormat: { decimals: 2 } }, { isPreview: true }, DEFAULT_SETTINGS)).toBe('Quota: 82.00%');
         });
 
         it('renders quota percentage from bucket fraction', () => {

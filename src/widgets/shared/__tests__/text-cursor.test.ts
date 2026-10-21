@@ -37,6 +37,14 @@ describe('applyTextCursorInput', () => {
         expect(applyTextCursorInput({ text: 'ac', cursor: 1 }, 'b', makeKey())).toEqual({ text: 'abc', cursor: 2 });
     });
 
+    it('snaps cursor to grapheme boundary when joined emoji is created', () => {
+        // '👩‍' (woman + ZWJ) inserted before '💻' forms '👩‍💻'
+        const result = applyTextCursorInput({ text: '💻', cursor: 0 }, '👩‍', makeKey());
+        expect(result).not.toBeNull();
+        expect(result?.text).toBe('👩‍💻');
+        expect(result?.cursor).toBe('👩‍💻'.length);
+    });
+
     it('moves and deletes by whole graphemes', () => {
         const text = `a${FAMILY}b`;
         const afterEmoji = 1 + FAMILY.length;

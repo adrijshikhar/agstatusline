@@ -435,6 +435,9 @@ Options:
     if (process.argv.includes('--install')) {
         const { installStatusLine } = await import('./utils/antigravity-settings');
         await installStatusLine();
+        const settings = await loadSettings();
+        const { syncWidgetHooks } = await import('./utils/hooks');
+        await syncWidgetHooks(settings);
         console.log('Successfully installed agstatusline into Antigravity CLI settings');
         process.exit(0);
     }
@@ -442,6 +445,8 @@ Options:
     if (process.argv.includes('--uninstall')) {
         const { uninstallStatusLine } = await import('./utils/antigravity-settings');
         await uninstallStatusLine();
+        const { removeManagedHooks } = await import('./utils/hooks');
+        await removeManagedHooks();
         console.log('Successfully uninstalled agstatusline from Antigravity CLI settings');
         process.exit(0);
     }

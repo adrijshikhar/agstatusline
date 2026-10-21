@@ -23,7 +23,8 @@ export class QuotaUsageWidget implements Widget {
 
     render(item: WidgetItem, context: RenderContext, _settings: Settings): string | null {
         if (context.isPreview) {
-            return formatRawOrLabeledValue(item, this.getLabelPrefix(), '82%');
+            const formatted = formatPercent(82, item.numberFormat);
+            return formatRawOrLabeledValue(item, this.getLabelPrefix(), formatted);
         }
 
         const quotaMap = context.data?.quota;

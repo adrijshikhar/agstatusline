@@ -244,4 +244,83 @@ describe('syncWidgetHooks', () => {
         expect(saved.hooks?.PreToolUse).toHaveLength(1);
         expect(saved.hooks?.UserPromptSubmit).toHaveLength(1);
     });
+
+    describe('Antigravity hooks synchronization', () => {
+        let tempAgDir: string;
+        let agHooksPath: string;
+        let agSettingsPath: string;
+        const ORIGINAL_AG_CONFIG = process.env.ANTIGRAVITY_CONFIG_DIR;
+        const ORIGINAL_AG_HOOKS = process.env.ANTIGRAVITY_HOOKS_PATH;
+
+        beforeEach(() => {
+            tempAgDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ag-hooks-test-'));
+            agHooksPath = path.join(tempAgDir, 'hooks.json');
+            agSettingsPath = path.join(tempAgDir, 'settings.json');
+            process.env.ANTIGRAVITY_CONFIG_DIR = tempAgDir;
+            process.env.ANTIGRAVITY_HOOKS_PATH = agHooksPath;
+
+            fs.writeFileSync(
+                agSettingsPath,
+                JSON.stringify({ statusLine: { type: 'command', command: 'agstatusline', enabled: true } }),
+                'utf8'
+            );
+        });
+
+        afterEach(() => {
+            if (ORIGINAL_AG_CONFIG === undefined) {
+                delete process.env.ANTIGRAVITY_CONFIG_DIR;
+            } else {
+                process.env.ANTIGRAVITY_CONFIG_DIR = ORIGINAL_AG_CONFIG;
+            }
+            if (ORIGINAL_AG_HOOKS === undefined) {
+                delete process.env.ANTIGRAVITY_HOOKS_PATH;
+            } else {
+                process.env.ANTIGRAVITY_HOOKS_PATH = ORIGINAL_AG_HOOKS;
+            }
+            try {
+                fs.rmSync(tempAgDir, { recursive: true, force: true });
+            } catch {
+                // Ignore cleanup error
+            }
+        });
+
+        it('syncs agstatusline hooks to Antigravity hooks.json and preserves pre-existing hooks', async () => {
+            fs.writeFileSync(
+                agHooksPath,
+                JSON.stringify({ otherTool: { PreInvocation: [{ command: './other.sh' }] } }),
+                'utf8'
+            );
+
+            const settings = SettingsSchema.parse({ lines: [[{ id: 'skills-1', type: 'skills' }]] });
+            await syncWidgetHooks(settings);
+
+            expect(fs.existsSync(agHooksPath)).toBe(true);
+            const saved = JSON.parse(fs.readFileSync(agHooksPath, 'utf8')) as {
+                otherTool?: unknown;
+                agstatusline?: { PreToolUse?: { matcher?: string; hooks?: { command?: string }[] }[] };
+            };
+
+            expect(saved.otherTool).toBeDefined();
+            expect(saved.agstatusline?.PreToolUse).toBeDefined();
+            expect(saved.agstatusline?.PreToolUse?.[0]?.matcher).toBe('Skill');
+            expect(saved.agstatusline?.PreToolUse?.[0]?.hooks?.[0]?.command).toBe('agstatusline --hook');
+        });
+
+        it('removes agstatusline hooks on removeManagedHooks while preserving other hooks', async () => {
+            fs.writeFileSync(agHooksPath, JSON.stringify({
+                otherTool: { PreInvocation: [{ command: './other.sh' }] },
+                agstatusline: { PreToolUse: [{ matcher: 'Skill', hooks: [{ command: 'agstatusline --hook' }] }] }
+            }), 'utf8');
+
+            await removeManagedHooks();
+
+            const saved = JSON.parse(fs.readFileSync(agHooksPath, 'utf8')) as {
+                otherTool?: unknown;
+                agstatusline?: unknown;
+            };
+
+            expect(saved.otherTool).toBeDefined();
+            expect(saved.agstatusline).toBeUndefined();
+        });
+    });
 });

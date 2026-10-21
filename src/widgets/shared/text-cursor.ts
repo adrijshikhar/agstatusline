@@ -62,7 +62,11 @@ export function applyTextCursorInput(state: TextCursorState, input: string, key:
             : { text: text.slice(0, cursor) + text.slice(next), cursor };
     }
     if (shouldInsertInput(input, key)) {
-        return { text: text.slice(0, cursor) + input + text.slice(cursor), cursor: cursor + input.length };
+        const newText = text.slice(0, cursor) + input + text.slice(cursor);
+        const rawCursor = cursor + input.length;
+        const newBoundaries = getBoundaries(newText);
+        const snappedCursor = newBoundaries.find(b => b >= rawCursor) ?? newText.length;
+        return { text: newText, cursor: snappedCursor };
     }
     return null;
 }

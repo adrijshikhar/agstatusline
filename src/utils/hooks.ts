@@ -1,8 +1,16 @@
+import * as fs from 'fs';
+import { readFile } from 'fs/promises';
+
 import type { Settings } from '../types/Settings';
 import type { Widget } from '../types/Widget';
 
 import {
-    getExistingStatusLine,
+    getAntigravityHooksPath,
+    getExistingStatusLine as getAgExistingStatusLine,
+    writeJsonAtomic
+} from './antigravity-settings';
+import {
+    getExistingStatusLine as getClaudeExistingStatusLine,
     loadClaudeSettings,
     saveClaudeSettings
 } from './claude-settings';
@@ -98,15 +106,14 @@ function getActiveHookDefs(settings: Settings): WidgetHookDef[] {
     return defs;
 }
 
-export async function syncWidgetHooks(settings: Settings): Promise<void> {
-    const needed = getActiveHookDefs(settings);
+async function syncClaudeHooks(needed: WidgetHookDef[]): Promise<void> {
     const claudeSettings = await loadClaudeSettings({ logErrors: false });
     const hooks = (claudeSettings.hooks ?? {}) as Record<string, HookEntry[]>;
 
     // Remove tagged entries and legacy untagged hook commands
     stripManagedHooks(hooks);
 
-    const statusCommand = await getExistingStatusLine();
+    const statusCommand = await getClaudeExistingStatusLine();
     if (!statusCommand) {
         claudeSettings.hooks = Object.keys(hooks).length > 0 ? hooks : undefined;
         await saveClaudeSettings(claudeSettings);
@@ -131,7 +138,7 @@ export async function syncWidgetHooks(settings: Settings): Promise<void> {
     await saveClaudeSettings(claudeSettings);
 }
 
-export async function removeManagedHooks(): Promise<void> {
+async function removeClaudeManagedHooks(): Promise<void> {
     const claudeSettings = await loadClaudeSettings({ logErrors: false });
     const hooks = (claudeSettings.hooks ?? {}) as Record<string, HookEntry[]>;
 
@@ -139,4 +146,100 @@ export async function removeManagedHooks(): Promise<void> {
 
     claudeSettings.hooks = Object.keys(hooks).length > 0 ? hooks : undefined;
     await saveClaudeSettings(claudeSettings);
+}
+
+async function syncAntigravityHooks(needed: WidgetHookDef[]): Promise<void> {
+    const hooksPath = getAntigravityHooksPath();
+    const statusCommand = await getAgExistingStatusLine();
+
+    let hooksData: Record<string, unknown> = {};
+    if (fs.existsSync(hooksPath)) {
+        try {
+            const raw = await readFile(hooksPath, 'utf8');
+            const parsed = JSON.parse(raw) as unknown;
+            if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+                hooksData = parsed as Record<string, unknown>;
+            }
+        } catch {
+            // Ignore parse errors on pre-existing hooks.json
+        }
+    }
+
+    if (!statusCommand || needed.length === 0) {
+        if ('agstatusline' in hooksData) {
+            delete hooksData.agstatusline;
+            await writeJsonAtomic(hooksPath, hooksData);
+        }
+        return;
+    }
+
+    const hookCommand = `${statusCommand} --hook`;
+    const agstatuslineHook: Record<string, unknown> = {};
+
+    for (const def of needed) {
+        const handler = {
+            type: 'command',
+            command: hookCommand
+        };
+
+        const entry = def.matcher
+            ? { matcher: def.matcher, hooks: [handler] }
+            : handler;
+
+        const eventList = (agstatuslineHook[def.event] ??= []) as unknown[];
+        eventList.push(entry);
+    }
+
+    hooksData.agstatusline = agstatuslineHook;
+    await writeJsonAtomic(hooksPath, hooksData);
+}
+
+export async function removeAntigravityHooks(): Promise<void> {
+    const hooksPath = getAntigravityHooksPath();
+    if (!fs.existsSync(hooksPath)) {
+        return;
+    }
+    try {
+        const raw = await readFile(hooksPath, 'utf8');
+        const parsed = JSON.parse(raw) as unknown;
+        if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+            const hooksData = parsed as Record<string, unknown>;
+            if ('agstatusline' in hooksData) {
+                delete hooksData.agstatusline;
+                await writeJsonAtomic(hooksPath, hooksData);
+            }
+        }
+    } catch {
+        // Ignore
+    }
+}
+
+export async function syncWidgetHooks(settings: Settings): Promise<void> {
+    const needed = getActiveHookDefs(settings);
+
+    try {
+        await syncAntigravityHooks(needed);
+    } catch {
+        // Ignore Antigravity hook sync errors
+    }
+
+    try {
+        await syncClaudeHooks(needed);
+    } catch {
+        // Ignore Claude hook sync errors
+    }
+}
+
+export async function removeManagedHooks(): Promise<void> {
+    try {
+        await removeAntigravityHooks();
+    } catch {
+        // Ignore
+    }
+
+    try {
+        await removeClaudeManagedHooks();
+    } catch {
+        // Ignore
+    }
 }
