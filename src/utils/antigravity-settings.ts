@@ -218,6 +218,17 @@ export async function backupAntigravitySettings(
 ): Promise<string | null> {
     const targetFile = settingsPath ?? getAntigravitySettingsPath();
     const backupPath = `${targetFile}${suffix}`;
+
+    // If a pristine .orig backup already exists, preserve it across subsequent installs
+    if (suffix === '.orig') {
+        try {
+            await stat(backupPath);
+            return backupPath;
+        } catch {
+            // Backup does not exist yet; proceed to create it
+        }
+    }
+
     try {
         const content = await readFile(targetFile, 'utf8');
         const mode = await getReplacedFileMode(targetFile);

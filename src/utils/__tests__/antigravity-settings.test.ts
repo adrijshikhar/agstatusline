@@ -63,6 +63,23 @@ describe('antigravity-settings', () => {
         expect(updated.statusLine).toBeDefined();
     });
 
+    it('preserves existing .orig backup across repeated installs', async () => {
+        const initial = { model: 'gemini-2.5-pro', pristine: true };
+        fs.writeFileSync(settingsFile, JSON.stringify(initial), 'utf8');
+
+        // First install creates .orig
+        await installStatusLine({ settingsPath: settingsFile, command: 'agstatusline' });
+
+        // Second install with different command should not overwrite .orig
+        await installStatusLine({ settingsPath: settingsFile, command: 'agstatusline --config /custom' });
+
+        const backupFile = `${settingsFile}.orig`;
+        expect(fs.existsSync(backupFile)).toBe(true);
+        const backupContent = JSON.parse(fs.readFileSync(backupFile, 'utf8')) as Record<string, unknown>;
+        expect(backupContent).toEqual(initial);
+        expect(backupContent.statusLine).toBeUndefined();
+    });
+
     it('backs up corrupted settings and warns without erasing backup', async () => {
         const corruptJson = '{\n  "corrupt": true,\n  invalid json here\n';
         fs.writeFileSync(settingsFile, corruptJson, 'utf8');

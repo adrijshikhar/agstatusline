@@ -126,32 +126,45 @@ function hasSessionDurationInStatusJson(data: StatusJSON): boolean {
     return typeof durationMs === 'number' && Number.isFinite(durationMs) && durationMs >= 0;
 }
 
-async function readStdin(): Promise<string | null> {
+async function readStdin(timeoutMs = 1000): Promise<string | null> {
     // Check if stdin is a TTY (terminal) - if it is, there's no piped data
     if (process.stdin.isTTY) {
         return null;
     }
 
-    const chunks: string[] = [];
+    const readPromise = (async (): Promise<string | null> => {
+        const chunks: string[] = [];
+        try {
+            if (typeof Bun !== 'undefined') {
+                const decoder = new TextDecoder();
+                for await (const chunk of Bun.stdin.stream()) {
+                    chunks.push(decoder.decode(chunk));
+                }
+            } else {
+                process.stdin.setEncoding('utf8');
+                for await (const chunk of process.stdin) {
+                    chunks.push(chunk as string);
+                }
+            }
+            return chunks.join('');
+        } catch {
+            return null;
+        }
+    })();
+
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeoutPromise = new Promise<null>((resolve) => {
+        timer = setTimeout(() => {
+            resolve(null);
+        }, timeoutMs);
+    });
 
     try {
-        // Use Node.js compatible approach
-        if (typeof Bun !== 'undefined') {
-            // Bun environment
-            const decoder = new TextDecoder();
-            for await (const chunk of Bun.stdin.stream()) {
-                chunks.push(decoder.decode(chunk));
-            }
-        } else {
-            // Node.js environment
-            process.stdin.setEncoding('utf8');
-            for await (const chunk of process.stdin) {
-                chunks.push(chunk as string);
-            }
+        return await Promise.race([readPromise, timeoutPromise]);
+    } finally {
+        if (timer !== undefined) {
+            clearTimeout(timer);
         }
-        return chunks.join('');
-    } catch {
-        return null;
     }
 }
 
@@ -479,7 +492,6 @@ Options:
                         : {});
             } catch (error) {
                 console.error('Error parsing JSON:', error);
-                process.exit(1);
             }
 
             try {
@@ -488,8 +500,11 @@ Options:
                 console.error('Error rendering statusline:', error);
             }
         } else {
-            console.error('No input received');
-            process.exit(1);
+            try {
+                await renderMultipleLines({});
+            } catch (error) {
+                console.error('Error rendering fallback statusline:', error);
+            }
         }
     } else {
         // Interactive mode - run TUI
