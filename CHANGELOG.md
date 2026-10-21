@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/adrijshikhar/agstatusline/compare/v0.1.1...v0.2.0) (2026-10-21)
+
+
+### Features
+
+* upstream ccstatusline v2.2.32 parity and Antigravity TUI rebrand ([#8](https://github.com/adrijshikhar/agstatusline/issues/8)) ([3119508](https://github.com/adrijshikhar/agstatusline/commit/31195089575d11343f1ed0e574a99218834d8796))
+
 ## [0.1.1](https://github.com/adrijshikhar/agstatusline/compare/v0.1.0...v0.1.1) (2026-10-04)
 
 
