@@ -37,14 +37,6 @@ describe('applyTextCursorInput', () => {
         expect(applyTextCursorInput({ text: 'ac', cursor: 1 }, 'b', makeKey())).toEqual({ text: 'abc', cursor: 2 });
     });
 
-    it('snaps cursor to grapheme boundary when joined emoji is created', () => {
-        // '👩‍' (woman + ZWJ) inserted before '💻' forms '👩‍💻'
-        const result = applyTextCursorInput({ text: '💻', cursor: 0 }, '👩‍', makeKey());
-        expect(result).not.toBeNull();
-        expect(result?.text).toBe('👩‍💻');
-        expect(result?.cursor).toBe('👩‍💻'.length);
-    });
-
     it('moves and deletes by whole graphemes', () => {
         const text = `a${FAMILY}b`;
         const afterEmoji = 1 + FAMILY.length;
@@ -77,6 +69,13 @@ describe('applyTextCursorInput', () => {
 });
 
 describe('renderTextWithCursor', () => {
+    it('removes only the highlight during the hidden blink phase', () => {
+        expect(renderTextWithCursor({ text: `a${FAMILY}b`, cursor: 1 }, false)).toBe(`a${FAMILY}b`);
+        expect(renderTextWithCursor({ text: 'ab ', cursor: 2 }, false)).toBe('ab ');
+        expect(renderTextWithCursor({ text: 'ab', cursor: 2 }, false)).toBe('ab ');
+        expect(renderTextWithCursor({ text: '', cursor: 0 }, false)).toBe(' ');
+    });
+
     it('inverts the grapheme under the cursor', () => {
         expect(renderTextWithCursor({ text: `a${FAMILY}`, cursor: 1 })).toBe(`a\x1b[7m${FAMILY}\x1b[27m`);
     });

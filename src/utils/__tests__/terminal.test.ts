@@ -51,7 +51,9 @@ describe('terminal utils', () => {
         vi.clearAllMocks();
         vi.restoreAllMocks();
         delete process.env.AGSTATUSLINE_WIDTH;
+        delete process.env.CXSTATUSLINE_WIDTH;
         delete process.env.CCSTATUSLINE_WIDTH;
+        delete process.env.COLUMNS;
     });
 
     beforeEach(() => {
@@ -61,7 +63,9 @@ describe('terminal utils', () => {
     afterEach(() => {
         vi.restoreAllMocks();
         delete process.env.AGSTATUSLINE_WIDTH;
+        delete process.env.CXSTATUSLINE_WIDTH;
         delete process.env.CCSTATUSLINE_WIDTH;
+        delete process.env.COLUMNS;
         setPlatform(ORIGINAL_PLATFORM);
     });
 
@@ -424,6 +428,16 @@ describe('terminal utils', () => {
             expect(getTerminalWidth({ sessionId: 'session-a', ttlSeconds: 300 })).toBe(220);
             expect(getTerminalWidth()).toBe(220);
             expect(canDetectTerminalWidth()).toBe(true);
+            expect(readSpy).not.toHaveBeenCalled();
+            expect(writeSpy).not.toHaveBeenCalled();
+            expect(mockExecFileSync).not.toHaveBeenCalled();
+        });
+
+        it('honors COLUMNS even when the session has a cached no-TTY result', () => {
+            readSpy.mockReturnValue({ width: null });
+            process.env.COLUMNS = '132';
+
+            expect(getTerminalWidth({ sessionId: 'session-a', ttlSeconds: 300 })).toBe(132);
             expect(readSpy).not.toHaveBeenCalled();
             expect(writeSpy).not.toHaveBeenCalled();
             expect(mockExecFileSync).not.toHaveBeenCalled();

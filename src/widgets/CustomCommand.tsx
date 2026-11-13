@@ -14,9 +14,14 @@ import type {
     WidgetEditorProps,
     WidgetItem
 } from '../types/Widget';
-import { getVisibleText } from '../utils/ansi';
+import {
+    getVisibleText,
+    stripSgrCodes
+} from '../utils/ansi';
 import { runCustomCommand } from '../utils/custom-command';
 import { shouldInsertInput } from '../utils/input-guards';
+
+import { applyMaxWidth } from './shared/max-width';
 
 export class CustomCommandWidget implements Widget {
     getDefaultColor(): string { return 'white'; }
@@ -58,10 +63,11 @@ export class CustomCommandWidget implements Widget {
         if (context.isPreview) {
             return item.commandPath ? `[cmd: ${item.commandPath.substring(0, 20)}${item.commandPath.length > 20 ? '...' : ''}]` : '[No command]';
         } else if (item.commandPath && context.data) {
+            const payload = context.rawData ?? context.data;
             const jsonInput = JSON.stringify(
                 typeof context.terminalWidth === 'number'
-                    ? { ...context.data, terminal_width: context.terminalWidth }
-                    : context.data
+                    ? { ...payload, terminal_width: context.terminalWidth }
+                    : payload
             );
             const result = runCustomCommand({
                 command: item.commandPath,
@@ -84,8 +90,21 @@ export class CustomCommandWidget implements Widget {
                 output = getVisibleText(output);
             }
 
-            if (item.maxWidth && output.length > item.maxWidth) {
-                output = output.substring(0, item.maxWidth - 3) + '...';
+            // Output with no visible text, such as color codes around an empty
+            // value, renders empty whether or not its colors are preserved
+            if (!getVisibleText(output)) {
+                return null;
+            }
+
+            // Truncate by display columns, skipping escape sequences and never
+            // splitting a grapheme. A cut can drop the command's own trailing
+            // reset, so close any SGR styling it left open; otherwise the
+            // colour bleeds into the separators and widgets that follow.
+            const truncated = applyMaxWidth(output, item.maxWidth);
+            if (truncated !== output && stripSgrCodes(truncated) !== truncated) {
+                output = `${truncated}\x1b[0m`;
+            } else {
+                output = truncated;
             }
 
             return output || null;

@@ -268,7 +268,10 @@ agstatusline --tui
 | `k` | Items Editor | Duplicate / clone selected widget |
 | `r` | Items Editor | Toggle raw value mode (drops labels like `ctx:`) |
 | `c` | Items Editor | Change color / open Color Menu |
+| `g` | Items Editor (Glyphs) | Set custom glyphs for widget symbols (`Shift+Tab` toggles all none/default) |
 | `h` | Items Editor | Configure hideable conditions (e.g. hide when clean / zero) |
+| `a` | Color Menu | Pick from the 256-color palette grid (arrow keys to move, type number to jump) |
+| `h` | Color Menu | Enter 6-digit hex color code (TrueColor mode) |
 | `b` | Color Menu | Toggle bold text style |
 | `d` | Color Menu | Cycle dim text style (none, whole widget, parens only) |
 | `p` | Custom Command | Toggle color preservation |

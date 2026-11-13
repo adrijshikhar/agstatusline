@@ -8,7 +8,10 @@ import type { SkillsMetrics } from './types';
 import type { RenderContext } from './types/RenderContext';
 import type { StatusJSON } from './types/StatusJSON';
 import { StatusJSONSchema } from './types/StatusJSON';
-import { getVisibleText } from './utils/ansi';
+import {
+    getVisibleText,
+    replaceSpacesForOutput
+} from './utils/ansi';
 import { prefetchClaudeStatusIfNeeded } from './utils/claude-service-status';
 import { updateColorMap } from './utils/colors';
 import { ZERO_COMPACTION_STATS } from './utils/compaction';
@@ -43,6 +46,7 @@ import {
     getPackageVersion,
     getTerminalWidth
 } from './utils/terminal';
+import { sanitizeTerminalText } from './utils/terminal-sanitize';
 import { prefetchUsageDataIfNeeded } from './utils/usage-prefetch';
 
 function resolveTranscriptPath(data: StatusJSON): string | undefined {
@@ -181,7 +185,7 @@ async function ensureWindowsUtf8CodePage() {
     }
 }
 
-async function renderMultipleLines(data: StatusJSON) {
+async function renderMultipleLines(data: StatusJSON, rawData?: Record<string, unknown>) {
     const settings = await loadSettings();
     const configError = getConfigLoadError();
 
@@ -261,6 +265,7 @@ async function renderMultipleLines(data: StatusJSON) {
     // Create render context
     const context: RenderContext = {
         data,
+        rawData,
         tokenMetrics,
         speedMetrics,
         windowedSpeedMetrics,
@@ -316,8 +321,8 @@ async function renderMultipleLines(data: StatusJSON) {
                     configBadgePrepended = true;
                 }
 
-                // Replace all spaces with non-breaking spaces to prevent VSCode trimming
-                let outputLine = line.replace(/ /g, '\u00A0');
+                // Replace spaces with characters VS Code won't trim (see replaceSpacesForOutput)
+                let outputLine = replaceSpacesForOutput(sanitizeTerminalText(line));
 
                 // Add reset code at the beginning to override Claude Code's dim setting
                 outputLine = '\x1b[0m' + outputLine;
@@ -336,7 +341,7 @@ async function renderMultipleLines(data: StatusJSON) {
 
     // Defensive fallback: if no content line was emitted, ensure the warning is not lost
     if (configError && !configBadgePrepended) {
-        console.log('\x1b[0m' + buildConfigWarningBadge(settings.colorLevel).replace(/ /g, '\u00A0'));
+        console.log('\x1b[0m' + replaceSpacesForOutput(buildConfigWarningBadge(settings.colorLevel)));
     }
 
     // Check if there's an update message to display
@@ -481,21 +486,23 @@ Options:
         const input = await readStdin();
         if (input && input.trim() !== '') {
             let statusData: StatusJSON = {};
+            let rawData: Record<string, unknown> | undefined;
             try {
                 // Parse and validate JSON in one step
                 const parsed = JSON.parse(input) as unknown;
+                if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+                    rawData = parsed as Record<string, unknown>;
+                }
                 const result = StatusJSONSchema.safeParse(parsed);
                 statusData = result.success
                     ? result.data
-                    : (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)
-                        ? (parsed as StatusJSON)
-                        : {});
+                    : (rawData ?? {});
             } catch (error) {
                 console.error('Error parsing JSON:', error);
             }
 
             try {
-                await renderMultipleLines(statusData);
+                await renderMultipleLines(statusData, rawData);
             } catch (error) {
                 console.error('Error rendering statusline:', error);
             }

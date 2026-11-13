@@ -44,6 +44,10 @@ export interface CompactionData {
 
 export interface RenderContext {
     data?: StatusJSON;
+    // Antigravity CLI's JSON as it arrived, for Custom Command's stdin. The
+    // validated `data` drops nested fields the schema doesn't list and turns
+    // number strings into numbers.
+    rawData?: Record<string, unknown>;
     tokenMetrics?: TokenMetrics | null;
     speedMetrics?: SpeedMetrics | null;
     windowedSpeedMetrics?: Record<string, SpeedMetrics> | null;

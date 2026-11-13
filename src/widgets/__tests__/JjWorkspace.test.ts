@@ -61,7 +61,7 @@ describe('JjWorkspaceWidget', () => {
 
         expect(render({ cwd: '/tmp/repo' })).toBe('◆ default');
         expect(mockExecFileSync.mock.calls[0]?.[0]).toBe('jj');
-        expect(mockExecFileSync.mock.calls[0]?.[1]).toEqual(['root']);
+        expect(mockExecFileSync.mock.calls[0]?.[1]).toEqual(['--color=never', 'root']);
         expect(mockExecFileSync.mock.calls[0]?.[2]).toEqual({
             encoding: 'utf8',
             stdio: ['pipe', 'pipe', 'ignore'],
@@ -70,6 +70,7 @@ describe('JjWorkspaceWidget', () => {
         });
         expect(mockExecFileSync.mock.calls[1]?.[0]).toBe('jj');
         expect(mockExecFileSync.mock.calls[1]?.[1]).toEqual([
+            '--color=never',
             'workspace',
             'list',
             '--template',

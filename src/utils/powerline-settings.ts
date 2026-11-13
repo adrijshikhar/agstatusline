@@ -3,18 +3,11 @@ import type { Settings } from '../types/Settings';
 import { getDefaultPowerlineTheme } from './colors';
 
 function resolveEnabledPowerlineTheme(theme: string | undefined): string {
-    if (!theme || theme === 'custom') {
-        return getDefaultPowerlineTheme();
-    }
-
-    return theme;
+    return theme ?? getDefaultPowerlineTheme();
 }
 
-export function buildEnabledPowerlineSettings(settings: Settings, removeManualSeparators: boolean): Settings {
+export function buildEnabledPowerlineSettings(settings: Settings): Settings {
     const powerlineConfig = settings.powerline;
-    const lines = removeManualSeparators
-        ? settings.lines.map(line => line.filter(item => item.type !== 'separator'))
-        : settings.lines;
 
     return {
         ...settings,
@@ -26,7 +19,6 @@ export function buildEnabledPowerlineSettings(settings: Settings, removeManualSe
             separators: powerlineConfig.separators,
             separatorInvertBackground: powerlineConfig.separatorInvertBackground
         },
-        defaultPadding: ' ',
-        lines
+        defaultPadding: ' '
     };
 }

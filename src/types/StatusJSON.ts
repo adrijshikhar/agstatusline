@@ -43,6 +43,34 @@ export const SubagentItemSchema = z.object({
 
 export type SubagentItem = z.infer<typeof SubagentItemSchema>;
 
+function tolerant<T extends z.ZodType>(schema: T) {
+    return schema.nullable().optional().catch(undefined);
+}
+
+const LastMissCauseSchema = z.looseObject({
+    causes: z.array(z.string()).catch([]),
+    tools_added: tolerant(CoercedNumberSchema),
+    tools_removed: tolerant(CoercedNumberSchema),
+    system_char_delta: tolerant(CoercedNumberSchema)
+});
+
+const PromptCacheSchema = z.object({
+    warm: tolerant(z.boolean()),
+    caching_observed: tolerant(z.boolean()),
+    ttl: tolerant(z.string()),
+    expires_at: tolerant(CoercedNumberSchema),
+    requests: tolerant(CoercedNumberSchema),
+    misses: tolerant(CoercedNumberSchema),
+    expected_rebuilds: tolerant(CoercedNumberSchema),
+    hit_ratio: tolerant(CoercedNumberSchema),
+    cache_write_tokens: tolerant(CoercedNumberSchema),
+    miss_recache_tokens: tolerant(CoercedNumberSchema),
+    last_miss_at: tolerant(CoercedNumberSchema),
+    last_miss_cause: tolerant(LastMissCauseSchema),
+    miss_causes: tolerant(z.record(z.string(), CoercedNumberSchema)),
+    recache_tokens_if_cold: tolerant(CoercedNumberSchema)
+});
+
 export const StatusJSONSchema = z.looseObject({
     hook_event_name: nullableToUndefined(z.string()),
     session_id: nullableToUndefined(z.string()),
@@ -120,6 +148,7 @@ export const StatusJSONSchema = z.looseObject({
         original_cwd: nullableToUndefined(z.string()),
         original_branch: nullableToUndefined(z.string())
     })),
+    prompt_cache: tolerant(PromptCacheSchema),
     rate_limits: z.object({
         five_hour: RateLimitPeriodSchema.nullable().optional(),
         seven_day: RateLimitPeriodSchema.nullable().optional(),

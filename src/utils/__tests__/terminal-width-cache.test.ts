@@ -48,6 +48,9 @@ function makeDeps(initial: string | null, now = 1_000_000): WidthCacheDeps & { f
 
             files.set(to, data);
             files.delete(from);
+        },
+        unlinkSync: (p: string) => {
+            files.delete(p);
         }
     };
 }
@@ -134,6 +137,28 @@ describe('terminal width cache', () => {
         writeCachedWidth('session-a', 209, tracking);
         expect(renames).toHaveLength(1);
         expect(renames[0]).toContain(`->${CACHE_PATH}`);
+    });
+
+    it('removes the temp file when the rename fails', () => {
+        const held = makeDeps(null);
+        held.renameSync = () => { throw new Error('EPERM'); };
+
+        writeCachedWidth('session-a', null, held);
+
+        const tempFiles = Array.from(held.files.keys()).filter(k => k.endsWith('.tmp'));
+        expect(tempFiles).toEqual([]);
+    });
+
+    it('leaves at most one temp file when neither the rename nor the cleanup succeeds', () => {
+        const held = makeDeps(null);
+        held.renameSync = () => { throw new Error('EPERM'); };
+        held.unlinkSync = () => { throw new Error('EPERM'); };
+
+        writeCachedWidth('session-a', null, held);
+        writeCachedWidth('session-a', null, held);
+
+        const tempFiles = Array.from(held.files.keys()).filter(k => k.endsWith('.tmp'));
+        expect(tempFiles).toHaveLength(1);
     });
 
     describe('write locking', () => {
