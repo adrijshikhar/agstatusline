@@ -33,7 +33,8 @@
     "lint": "bun tsc --noEmit && eslint . --config eslint.config.js --max-warnings=0",
     "lint:fix": "bun tsc --noEmit && eslint . --config eslint.config.js --max-warnings=0 --fix",
     "docs": "typedoc",
-    "docs:clean": "rm -rf typedoc"
+    "docs:clean": "rm -rf typedoc",
+    "port-upstream": "bun run scripts/port-upstream.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

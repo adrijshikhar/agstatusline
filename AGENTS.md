@@ -42,6 +42,10 @@ bun run lint:fix
 
 # Check upstream ccstatusline parity diff (dry run)
 bun run scripts/upstream-ccstatusline.ts --dry-run
+
+# Check and triage upstream commits for porting
+bun run port-upstream check
+bun run port-upstream diff <commit> --stat
 ```
 
 ## Architecture
@@ -88,6 +92,7 @@ The project has dual runtime compatibility—it develops and tests natively with
   - `App.tsx`: Navigation router, keyboard dispatch, and configuration state container.
   - `components/`: Modular UI views (MainMenu, LineSelector, ItemsEditor, ColorMenu, PowerlineSetup, TerminalOptionsMenu, StatusLinePreview, GlobalOverridesMenu).
 - **`scripts/`**:
+  - `port-upstream.ts`: Interactive parity triage and porting CLI helper for checking and inspecting upstream commits.
   - `replace-version.ts`: Postbuild script injecting package version into bundled artifacts.
   - `upstream-ccstatusline.ts`: Automated GitHub compare utility detecting upstream updates in `sirmalloc/ccstatusline`.
   - `upstream-ccstatusline.json`: Upstream tracking baseline commit.

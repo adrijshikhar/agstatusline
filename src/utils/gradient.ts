@@ -228,6 +228,17 @@ export function gradientCodeAt(
 }
 
 const WHITESPACE = /\s/;
+// An SGR whose first parameter sets the foreground: 30-38 or 90-97
+const FOREGROUND_SGR = /^\x1b\[(?:3[0-8]|9[0-7])[;m]/;
+
+// Whether a walk through text is inside a run the text colors itself after
+// this escape: a foreground code opens one and \x1b[39m closes it
+function isInColoredRun(sequence: string, inRun: boolean): boolean {
+    if (sequence === '\x1b[39m') {
+        return false;
+    }
+    return inRun || FOREGROUND_SGR.test(sequence);
+}
 
 function isCsiFinalByte(codePoint: number): boolean {
     return codePoint >= 0x40 && codePoint <= 0x7e;
@@ -355,7 +366,8 @@ function consumeEscapeSequence(input: string, index: number): ParsedEscapeSequen
 export function applyGradientToText(
     text: string,
     stops: Rgb[],
-    colorLevel: 'ansi16' | 'ansi256' | 'truecolor'
+    colorLevel: 'ansi16' | 'ansi256' | 'truecolor',
+    skipColoredRuns = false
 ): string {
     if (colorLevel === 'ansi16' || text.length === 0) {
         return text;
@@ -363,9 +375,11 @@ export function applyGradientToText(
 
     let visibleCount = 0;
     let scanIndex = 0;
+    let inRun = false;
     while (scanIndex < text.length) {
         const escape = consumeEscapeSequence(text, scanIndex);
         if (escape) {
+            inRun = skipColoredRuns && isInColoredRun(escape.sequence, inRun);
             scanIndex = escape.nextIndex;
             continue;
         }
@@ -376,7 +390,7 @@ export function applyGradientToText(
         }
 
         const ch = String.fromCodePoint(codePoint);
-        if (!WHITESPACE.test(ch)) {
+        if (!inRun && !WHITESPACE.test(ch)) {
             visibleCount++;
         }
         scanIndex += ch.length;
@@ -389,9 +403,11 @@ export function applyGradientToText(
     let result = '';
     let index = 0;
     let textIndex = 0;
+    inRun = false;
     while (textIndex < text.length) {
         const escape = consumeEscapeSequence(text, textIndex);
         if (escape) {
+            inRun = skipColoredRuns && isInColoredRun(escape.sequence, inRun);
             result += escape.sequence;
             textIndex = escape.nextIndex;
             continue;
@@ -403,7 +419,7 @@ export function applyGradientToText(
         }
 
         const ch = String.fromCodePoint(codePoint);
-        if (WHITESPACE.test(ch)) {
+        if (inRun || WHITESPACE.test(ch)) {
             result += ch;
             textIndex += ch.length;
             continue;

@@ -199,11 +199,27 @@ export function getTerminalWidth(options?: TerminalWidthOptions): number | null 
 
     // An explicit width takes precedence over a cached "no TTY" result and
     // bypasses probing. Memoize it for subsequent calls in this render.
-    const overrideRaw = process.env.AGSTATUSLINE_WIDTH ?? process.env.CCSTATUSLINE_WIDTH;
+    const overrideRaw = process.env.AGSTATUSLINE_WIDTH
+        ?? process.env.CXSTATUSLINE_WIDTH
+        ?? process.env.CCSTATUSLINE_WIDTH;
     if (overrideRaw) {
         const override = parsePositiveInteger(overrideRaw);
         if (override !== null) {
             cachedWidth = override;
+            hasProbed = true;
+            return cachedWidth;
+        }
+    }
+
+    // Antigravity and Claude Code pass COLUMNS to set the terminal width when
+    // running the statusline, since captured stdio leaves no TTY to probe.
+    // Reading it skips the ancestor walk (ps/stty calls per render).
+    // Checked before the L2 cache so a stale "no TTY" entry cannot hide it.
+    const columnsRaw = process.env.COLUMNS;
+    if (columnsRaw) {
+        const columns = parsePositiveInteger(columnsRaw);
+        if (columns !== null) {
+            cachedWidth = columns;
             hasProbed = true;
             return cachedWidth;
         }

@@ -73,6 +73,15 @@ export interface Widget {
      * still take precedence (see custom-command's preserve-colors mode).
      */
     preservesRenderedColors?(item: WidgetItem): boolean;
+    /**
+     * When true, the widget colors some runs of its rendered output itself, so
+     * the renderer paints only the uncolored text around them (using the
+     * item color or gradient, default color) and returns to that color after
+     * each run, so the runs keep theirs. A global foreground override still
+     * wins and strips the runs' colors. Unlike preservesRenderedColors, which
+     * leaves the widget's whole foreground alone.
+     */
+    colorsOnlyItsRuns?(item: WidgetItem): boolean;
 }
 
 export interface WidgetEditorProps {
@@ -80,6 +89,7 @@ export interface WidgetEditorProps {
     onComplete: (updatedWidget: WidgetItem) => void;
     onCancel: () => void;
     action?: string;
+    settings?: Settings;
 }
 
 export interface CustomKeybind {

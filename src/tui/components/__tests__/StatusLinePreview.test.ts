@@ -65,7 +65,7 @@ function flushInk() {
 }
 
 describe('StatusLinePreview helpers', () => {
-    it('strips OSC links and clamps preview lines to the terminal width', () => {
+    it('preserves OSC links and clamps preview lines to the terminal width', () => {
         const line = `${renderOsc8Link(
             'https://github.com/owner/repo/pull/42',
             'PR #42'
@@ -73,9 +73,33 @@ describe('StatusLinePreview helpers', () => {
 
         const prepared = preparePreviewLineForTerminal(line, 40);
 
-        expect(prepared).not.toContain('github.com');
+        expect(prepared).toContain('\x1b]8;;https://github.com/owner/repo/pull/42\x07PR #42\x1b]8;;\x07');
         expect(prepared.endsWith('...')).toBe(true);
         expect(getVisibleWidth(`  ${prepared}`)).toBeLessThanOrEqual(40);
+    });
+
+    it('closes a truncated link before the ellipsis', () => {
+        const line = renderOsc8Link('https://status.gemini.google.com', 'Antigravity: ok ▮▮▮▮▮▮▮▮');
+
+        expect(preparePreviewLineForTerminal(line, 20)).toBe(
+            '\x1b]8;;https://status.gemini.google.com\x07Antigravity: ok\x1b]8;;\x07...'
+        );
+    });
+
+    it('keeps a shortened CWD label linked to its complete file URL in preview', () => {
+        const target = 'file:///Users/example/Documents/Projects/%E4%B8%AD%E6%96%87%20project%20%231';
+        const line = renderOsc8Link(target, 'cwd: ~/.../中文 project #1');
+        const prepared = preparePreviewLineForTerminal(line, 160);
+
+        expect(prepared).toBe(`\x1b]8;;${target}\x07cwd: ~/.../中文 project #1\x1b]8;;\x07`);
+        expect(getVisibleWidth(prepared)).toBe(getVisibleWidth('cwd: ~/.../中文 project #1'));
+        expect(getVisibleWidth(prepared)).toBeLessThan(
+            getVisibleWidth('cwd: /Users/example/Documents/Projects/中文 project #1')
+        );
+    });
+
+    it('still removes non-link OSC sequences', () => {
+        expect(preparePreviewLineForTerminal('\x1b]0;title\x07Antigravity: ok', 40)).toBe('Antigravity: ok');
     });
 
     it('keeps parens dim scoped in the Ink preview when global bold is active', async () => {

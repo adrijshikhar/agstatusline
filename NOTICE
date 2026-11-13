@@ -6,5 +6,5 @@ licensed under the MIT License.
 Portions Copyright (c) 2025 Matthew Breedlove
 
 agstatusline maintains automated upstream parity with sirmalloc/ccstatusline:
-- Baseline Commit: 19c6665ecf14309a5ffcfcda5e31972833dd821a
-- Baseline Release: v2.2.32
+- Baseline Commit: 0c94df755665ed7794f082863821fd5f428cdf60
+- Baseline Release: v2.2.34

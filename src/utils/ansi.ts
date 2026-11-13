@@ -19,7 +19,7 @@ const VARIATION_SELECTOR_SUPPLEMENT_END = 0xe01ef;
 const REGIONAL_INDICATOR_START = 0x1f1e6;
 const REGIONAL_INDICATOR_END = 0x1f1ff;
 
-const SGR_REGEX = /\x1b\[[0-9;]*m/g;
+const SGR_REGEX = /(?:\x1b\[|\x9b)[0-9;:]*m/g;
 // Lowest code point that can extend a display cluster (U+0300 is the first
 // \p{Mark}; ZWJ, variation selectors, the keycap and emoji modifiers are all
 // higher), so a printable ASCII character followed by anything below it is a
@@ -395,30 +395,94 @@ export function stripSgrCodes(text: string): string {
     return text.replace(SGR_REGEX, '');
 }
 
-// Track background operations in order: a later explicit color overrides a
-// reset (0, an empty parameter, or 49). Skip extended color arguments so their
-// values aren't mistaken for resets or background operations.
-function sgrClearsBackground(sequence: string): boolean {
-    const params = sequence.slice(2, -1).split(';').map(param => Number.parseInt(param || '0', 10));
-    let clearsBackground = false;
+// What an SGR parameter does to an attribute: clears it, sets it, or leaves
+// it alone (undefined)
+type SgrEffect = 'clear' | 'set' | undefined;
+
+// The background is cleared by 0 (also an empty parameter) and 49
+function getBackgroundEffect(param: number | undefined): SgrEffect {
+    if (param === 0 || param === 49) {
+        return 'clear';
+    }
+    if (param !== undefined && ((param >= 40 && param <= 47) || (param >= 100 && param <= 107) || param === 48)) {
+        return 'set';
+    }
+    return undefined;
+}
+
+// Bold (set by 1) and dim (set by 2) are both cleared by 0 and 22
+function getIntensityEffect(param: number | undefined, setBy: 1 | 2): SgrEffect {
+    if (param === 0 || param === 22) {
+        return 'clear';
+    }
+    return param === setBy ? 'set' : undefined;
+}
+
+interface SgrClears {
+    background: boolean;
+    bold: boolean;
+    dim: boolean;
+}
+
+// Track each attribute's operations in order: a later explicit setting
+// overrides a reset. Skip extended color arguments so their values aren't
+// mistaken for resets or background operations.
+function getSgrClears(sequence: string): SgrClears {
+    const introducerLength = sequence.startsWith(C1_CSI) ? 1 : 2;
+    const body = sequence.slice(introducerLength, -1);
+    const fields = body.split(';');
+    const params = fields.map((param) => {
+        const subParam = param.split(':')[0] ?? '';
+        return Number.parseInt(subParam === '' ? '0' : subParam, 10);
+    });
+    const clears: SgrClears = { background: false, bold: false, dim: false };
+    const track = (attribute: keyof SgrClears, effect: SgrEffect) => {
+        if (effect) {
+            clears[attribute] = effect === 'clear';
+        }
+    };
     for (let i = 0; i < params.length; i++) {
         const param = params[i];
-        if (param === 0 || param === 49) {
-            clearsBackground = true;
-        } else if (param !== undefined && ((param >= 40 && param <= 47) || (param >= 100 && param <= 107) || param === 48)) {
-            clearsBackground = false;
-        }
-        if (param === 38 || param === 48 || param === 58) {
+        track('background', getBackgroundEffect(param));
+        track('bold', getIntensityEffect(param, 1));
+        track('dim', getIntensityEffect(param, 2));
+        if ((param === 38 || param === 48 || param === 58) && !fields[i]?.includes(':')) {
             i += params[i + 1] === 5 ? 2 : 4;
         }
     }
-    return clearsBackground;
+    return clears;
+}
+
+// The styling restoreStyleAfterResets re-applies, with the background as the
+// SGR code that sets it
+export interface RestoredStyle {
+    background?: string;
+    bold?: boolean;
+    dim?: boolean;
+}
+
+// Re-apply a widget's own styling after each SGR sequence in the text that
+// clears it, so text that resets its own styling keeps the background, bold
+// and dim it's drawn with.
+export function restoreStyleAfterResets(text: string, style: RestoredStyle): string {
+    const background = style.background ?? '';
+    if (!background && !style.bold && !style.dim) {
+        return text;
+    }
+
+    return text.replace(SGR_REGEX, (sequence) => {
+        const clears = getSgrClears(sequence);
+        return sequence
+            + (style.bold && clears.bold ? '\x1b[1m' : '')
+            + (style.dim && clears.dim ? '\x1b[2m' : '')
+            + (clears.background ? background : '');
+    });
 }
 
 // Re-apply a background after each SGR sequence in the text that clears it,
 // so text that resets its own styling stays on the background it's drawn on.
 export function restoreBackgroundAfterResets(text: string, backgroundCode: string): string {
-    return text.replace(SGR_REGEX, sequence => (sgrClearsBackground(sequence) ? sequence + backgroundCode : sequence));
+    return restoreStyleAfterResets(text, { background: backgroundCode });
 }
 
 export function stripOscCodes(text: string): string {
@@ -476,6 +540,20 @@ export function getVisibleText(text: string): string {
     }
 
     return result;
+}
+
+// A space right after a Private Use Area character (Nerd Font icons), possibly
+// after color codes or link closers, becomes an EN SPACE: Ghostty and kitty
+// only draw such an icon two cells wide when the next cell is U+0020 or
+// U+2002, and U+00A0 keeps it at one. Powerline separators (U+E0B0-U+E0D7)
+// are left out: they're drawn one cell wide.
+const PUA_THEN_SPACE_REGEX = /([\uE000-\uE0AF\uE0D8-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}](?:\x1b\[[0-9;:]*m|\x1b\]8;[^\x07\x1b]*(?:\x07|\x1b\\))*) /gu;
+
+// Swaps spaces for characters that editors like VS Code do not trim.
+export function replaceSpacesForOutput(text: string): string {
+    return text
+        .replace(PUA_THEN_SPACE_REGEX, '$1\u2002')
+        .replace(/ /g, '\u00A0');
 }
 
 export function getVisibleWidth(text: string): number {
