@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/adrijshikhar/agstatusline/compare/v0.2.0...v0.3.0) (2026-11-13)
+
+
+### Features
+
+* **upstream:** port ccstatusline v2.2.33 and v2.2.34 updates ([#12](https://github.com/adrijshikhar/agstatusline/issues/12)) ([fb7add4](https://github.com/adrijshikhar/agstatusline/commit/fb7add47939bafe4dd722939353bdce25a2feb62))
+
 ## [0.2.0](https://github.com/adrijshikhar/agstatusline/compare/v0.1.1...v0.2.0) (2026-10-21)
 
 
