@@ -14,6 +14,7 @@ import {
 import type {
     RenderContext,
     StatusJSON,
+    WidgetEditorProps,
     WidgetItem
 } from '../../types';
 import {
@@ -513,6 +514,21 @@ describe('ThinkingEffortWidget', () => {
             expect(widget.handleEditorAction(bracketAction, item)?.metadata).toEqual({ brackets: '()' });
             expect(widget.handleEditorAction(colorsAction, item)).toBeNull();
             expect(widget.renderEditor({ widget: item, onComplete: vi.fn(), onCancel: vi.fn(), action: colorsAction })).not.toBeNull();
+        });
+
+        it('passes settings to the level color editor', () => {
+            const widget = new ThinkingEffortWidget();
+            const item: WidgetItem = { id: 'e', type: 'thinking-effort' };
+            const settings = { ...DEFAULT_SETTINGS, colorLevel: 3 as const };
+            const element = widget.renderEditor({
+                widget: item,
+                onComplete: vi.fn(),
+                onCancel: vi.fn(),
+                settings
+            }) as React.ReactElement<WidgetEditorProps> | null;
+
+            expect(element).not.toBeNull();
+            expect(element?.props.settings).toEqual(settings);
         });
 
         it('lists the active options beside the name in the line editor', () => {

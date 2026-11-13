@@ -21,7 +21,11 @@ export const CANONICAL_WIDGET_TYPES = [
     'custom-text',
     'custom-symbol',
     'custom-command',
-    'version'
+    'version',
+    'cache-misses',
+    'last-cache-miss',
+    'cache-miss-tokens',
+    'cache-if-cold'
 ] as const;
 
 export type CanonicalWidgetType = (typeof CANONICAL_WIDGET_TYPES)[number];

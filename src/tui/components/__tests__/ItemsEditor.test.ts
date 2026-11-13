@@ -736,5 +736,23 @@ describe('ItemsEditor', () => {
                 editor.cleanup();
             }
         });
+
+        it('passes settings into custom widget renderEditor', async () => {
+            const customSettings = {
+                ...DEFAULT_SETTINGS,
+                colorLevel: 0 as const
+            };
+            const editor = renderEditor([{ id: '1', type: 'thinking-effort' }], customSettings);
+
+            try {
+                await editor.ready();
+                editor.press('l');
+                await waitFor(() => {
+                    expect(editor.screen()).toContain('Thinking Effort: level colors');
+                });
+            } finally {
+                editor.cleanup();
+            }
+        });
     });
 });

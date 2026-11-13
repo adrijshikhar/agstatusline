@@ -44,15 +44,16 @@ else
 fi
 
 "$JS_CMD" -e "
-const fs = require('fs');
-const file = process.argv[1];
-const repo = process.argv[2];
-const commit = process.argv[3];
-const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-data.repo = repo;
-data.baseCommit = commit;
-fs.writeFileSync(file, JSON.stringify(data, null, 4) + '\n', 'utf8');
-console.log('✅ Updated ' + file + ' baseCommit to ' + commit);
+import('node:fs').then(fs => {
+  const file = process.argv[1];
+  const repo = process.argv[2];
+  const commit = process.argv[3];
+  const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+  data.repo = repo;
+  data.baseCommit = commit;
+  fs.writeFileSync(file, JSON.stringify(data, null, 4) + '\n', 'utf8');
+  console.log('✅ Updated ' + file + ' baseCommit to ' + commit);
+});
 " "$CONFIG_FILE" "$REPO" "$NEW_COMMIT"
 
 echo ""
